@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<style>
+#sh{position:fixed;inset:0;z-index:50;display:none}#sh.open{display:block}.mask{position:absolute;inset:0;background:rgba(10,14,22,.5);animation:fi .2s}
+.pan{position:absolute;left:0;right:0;bottom:0;max-width:520px;margin:auto;background:var(--card);border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));animation:su .25s ease-out}.pan h3{margin:0 0 6px}
+#lg{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;align-items:center;justify-content:center;transition:opacity .45s,transform .45s}#lg.on{display:flex}#lg.out{opacity:0;transform:scale(1.05);pointer-events:none}
+.lgc{position:relative;width:min(92vw,420px);text-align:center;animation:rise .5s cubic-bezier(.2,.8,.2,1)}.pg{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:22px}
+.av{width:96px;border:0;background:none;color:var(--tx);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit}
+.em{width:72px;height:72px;border-radius:50%;background:var(--card);border:1px solid var(--bd);box-shadow:var(--sh);display:inline-grid;place-items:center;font-size:34px;transition:transform .2s}.em.big{width:96px;height:96px;font-size:46px}.sm1.em{width:44px;height:44px;font-size:24px}
+.av:hover .em{transform:scale(1.08)}.pop{animation:pop .4s}.shake{animation:shk .4s}
+.pe span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:2px solid transparent;background:var(--card);cursor:pointer}.pe input:checked+span{border-color:var(--ac)}
+@keyframes fi{from{opacity:0}}@keyframes su{from{transform:translateY(40px);opacity:0}}@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.97)}}@keyframes pop{50%{transform:scale(1.25)}}@keyframes shk{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.r1,.r2{stroke-dashoffset:0}}
+:root{--bg:#eceee9;--card:#fafbf8;--tx:#1a2420;--mu:#65716b;--bd:#d8ddd5;--ac:#238068;--ok:#2b8a57;--bad:#c0392b;--wa:#b7791f;--sh:none;--c1:#238068;--c2:#2d9a7d;--c3:#5fb39b}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1310;--card:#151b17;--tx:#e7eee9;--mu:#8f9c95;--bd:#242e28}}
+:root[data-theme=dark]{--bg:#0e1310;--card:#151b17;--tx:#e7eee9;--mu:#8f9c95;--bd:#242e28}
+:root.blk[data-theme=dark]{--bg:#000;--card:#0a0d0b;--bd:#1b231e}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:720px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top,0px)) 14px calc(88px + env(safe-area-inset-bottom,0px))}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0 14px}
+h1{font-size:24px;line-height:1.15;margin:0;font-weight:700;letter-spacing:-.02em}h2{font-size:15px;margin:0 0 10px;font-weight:650}h3{font-size:19px;margin:0 0 10px;letter-spacing:-.01em}
+h2.mt{margin-top:18px}.sub,.sm{color:var(--mu);font-size:13px}
+.hb{display:flex;gap:8px}.ib{width:42px;height:42px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);display:grid;place-items:center;cursor:pointer;font-size:20px;padding:0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+nav button{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:var(--mu);font:inherit;font-size:11px;padding:7px 0 4px;cursor:pointer;min-width:0}
+nav button.on{color:var(--ac);font-weight:650}nav button.on::before{content:'';position:absolute;top:-7px;width:26px;height:3px;border-radius:0 0 3px 3px;background:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));margin-bottom:12px}.grid>.card{margin:0}
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:9px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}.row .g{flex:1 1 140px;min-width:0}.row.nw{flex-wrap:nowrap}
+.tag{font-size:12px;border:1px solid var(--bd);border-radius:6px;padding:1px 7px;color:var(--mu)}.tag:empty{display:none}
+input,select,textarea{font:inherit;font-size:16px;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:9px;padding:9px 10px;min-width:0;max-width:100%}
+input:focus,select:focus{outline:2px solid var(--ac);outline-offset:0}input[type=checkbox]{width:21px;height:21px;padding:0;accent-color:var(--ac);flex:none}
+.ti{border-color:transparent;background:transparent;padding:6px;width:100%}.ti:hover,.ti:focus{border-color:var(--bd);background:var(--bg)}select.ti{width:auto}
+button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button.b{background:var(--ac);color:#fff;border:0;border-radius:9px;padding:10px 14px;font-weight:600;cursor:pointer}button.b:active{opacity:.8}
+button.b.ghost{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.b.dg{background:var(--bad);color:#fff}button.sm2{padding:6px 10px;font-size:13px}
+button.x{background:none;border:0;color:var(--mu);cursor:pointer;font-size:20px;padding:4px 8px}
+button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+form{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}form input,form select{flex:1 1 110px}
+.fs{display:grid;gap:12px;margin:0}.fs>button{width:100%}.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.fld{display:grid;gap:5px;font-size:13px;color:var(--mu);min-width:0}.fld input,.fld select{width:100%}
+.ql{display:flex;flex-wrap:nowrap;gap:6px;margin:0}.ql input{width:84px;flex:none;padding:7px 8px}.ql button{padding:8px 12px}
+.bar{height:8px;background:var(--bd);border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}.bar.ok i{background:var(--ok)}.bar.bad i{background:var(--bad)}
+.bar.seg{position:relative;overflow:visible;height:8px}.bar.seg i{border-radius:5px}.bar.seg u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx);opacity:.6}
+.big{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;margin-bottom:12px}.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.bad{color:var(--bad)}.ok{color:var(--ok)}.wa{color:var(--wa)}
+.ins{padding:8px 10px;border-left:3px solid var(--ac);background:var(--bg);margin:6px 0;border-radius:6px;font-size:14px}.ins.bad{border-color:var(--bad)}.ins.ok{border-color:var(--ok)}
+.card.hero{background:var(--c1);border-color:var(--c1);color:#fff}.hero h2{color:#fff}.hero .ins{background:rgba(255,255,255,.14);border-color:#fff}.hero .ti{color:#fff}.hero .ti:hover{background:rgba(255,255,255,.14)}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto;background:var(--tx);color:var(--bg);padding:12px 14px;border-radius:10px;display:none;z-index:90}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--bd);background:transparent;color:var(--tx);border-radius:999px;padding:7px 13px;cursor:pointer}.chip.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.seg2{display:flex;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:3px}.seg2 button{flex:1;border:0;background:none;padding:8px 10px;border-radius:7px;cursor:pointer}.seg2 button.on{background:var(--card);font-weight:650;box-shadow:0 0 0 1px var(--bd)}
+.pal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pal button{height:48px;border-radius:10px;border:2px solid transparent;color:#fff;font-size:12px;font-weight:600;text-transform:capitalize;cursor:pointer}.pal button.on{border-color:var(--tx);box-shadow:0 0 0 2px var(--card)}
+.pan{max-height:90vh;overflow-y:auto;background:var(--card)}
+.bh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:4px 0 12px}.bh h2{margin:0}.bh .seg2{flex:1;max-width:300px}.fl{width:100%;margin-bottom:12px}
+.ad{flex:none;width:4px;height:36px;border-radius:2px}.sk{text-align:right;flex:none}.sk b{display:block;font-size:22px;line-height:1}.sk small,.stats small{color:var(--mu);font-size:12px}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:12px}.dy{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0;border-radius:9px;border:1px solid var(--bd);background:transparent;font-size:14px;font-weight:600;cursor:pointer}.dy small{font-size:11px;font-weight:400;color:var(--mu)}
+.dy.on{background:var(--ac);border-color:var(--ac);color:#fff}.dy.on small{color:#fff}.dy.miss{border-color:var(--bad)}.dy.td{box-shadow:0 0 0 2px var(--tx)}.dy:disabled{opacity:.35;cursor:default}
+.hm{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:3px;margin:12px 0}.hm i{aspect-ratio:1;border-radius:3px;background:var(--bd);opacity:.45}.hm i.on{background:var(--ac);opacity:1}.hm i.off{opacity:1;background:transparent;box-shadow:inset 0 0 0 1px var(--bd)}.hm i.fu{visibility:hidden}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 10px}.stats div{background:var(--bg);border-radius:10px;padding:9px 8px}.stats b{display:block;font-size:19px;line-height:1.2}
+.pc{font-size:22px;font-weight:700;flex:none}.gc .row{padding:0}.gi{padding:12px 0;border-top:1px solid var(--bd)}.gi:first-of-type{border:0}
+.burn{margin:6px 0}.ideal{stroke:var(--mu);stroke-dasharray:4 4;opacity:.7}.act{stroke:var(--ac);stroke-width:2.5;stroke-linejoin:round}
+.b1{fill:var(--ac)}.tx{fill:var(--mu);font-size:10px}.ln{stroke:var(--ac)}.cir{fill:var(--ac)}.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fc2{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.ft{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}.app{padding-left:12px;padding-right:12px}h1{font-size:22px}input[type=date].ti,input[type=time].ti{width:auto!important}.kpis{grid-template-columns:1fr 1fr}}
+
+.entering header{animation:drop .8s cubic-bezier(.2,.9,.3,1) both}.entering nav{animation:nup .9s cubic-bezier(.2,.9,.3,1.25) .25s both}
+#sp{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:radial-gradient(120% 90% at 15% 8%,color-mix(in srgb,var(--c1) 50%,#0b0f1a),transparent 60%),radial-gradient(100% 80% at 90% 92%,color-mix(in srgb,var(--c3) 42%,#0b0f1a),transparent 62%),#0b0f1a;transition:opacity .8s,transform .8s}
+#sp.go{opacity:0;transform:scale(1.12);pointer-events:none}
+.spc{text-align:center;color:#fff}.spc svg{filter:drop-shadow(0 0 22px var(--c2));animation:float 3s ease-in-out infinite}
+.r1,.r2{stroke-dasharray:100;stroke-dashoffset:100}.r1{animation:draw 1s .1s ease-out forwards}.r2{animation:draw .6s .95s ease-out forwards}
+.spt{font-size:34px;margin:14px 0 4px;color:#fff;letter-spacing:-.02em}.spt span{display:inline-block;animation:ltr .7s cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(.7s + var(--i)*45ms)}
+.spc p{margin:0;opacity:.7;animation:fi 1s 1.5s both}
+@keyframes drift{to{transform:translate(9vw,7vh) scale(1.18)}}@keyframes avin{from{opacity:0;transform:translateY(30px) scale(.7)}}@keyframes burst{from{transform:scale(.4);opacity:.9}to{transform:scale(6);opacity:0}}
+@keyframes cin{from{opacity:0;transform:translateY(26px) scale(.96)}}@keyframes grow{from{width:0}}@keyframes bob{40%{transform:translateY(-7px) scale(1.2)}}
+@keyframes drop{from{opacity:0;transform:translateY(-30px)}}@keyframes nup{from{opacity:0;transform:translateY(80px) scale(.9)}}@keyframes rip{to{transform:scale(1);opacity:0}}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(.95)}}@keyframes draw{to{stroke-dashoffset:0}}@keyframes ltr{from{opacity:0;transform:translateY(26px) scale(.6) rotate(8deg);filter:blur(6px)}}@keyframes float{50%{transform:translateY(-6px)}}
+.r1{transform:rotate(-90deg);transform-origin:60px 60px;transform-box:view-box}.orb{transform-box:view-box;transform-origin:60px 60px;animation:orb 1.1s .1s cubic-bezier(.6,0,.2,1) both}@keyframes orb{from{transform:rotate(0);opacity:0}12%{opacity:1}to{transform:rotate(360deg);opacity:1}}
+button,input,select,label,summary{touch-action:manipulation}*{-webkit-tap-highlight-color:transparent}nav{max-width:560px;margin:0 auto}
+.fc2{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.tm{position:relative;display:grid;place-items:center;flex:none}.tm .ft{position:absolute;font-size:24px}#fr{transition:stroke-dashoffset 1s linear}.chips input{padding:6px 12px}
+
+.sx{position:relative;text-align:center;color:#fff;padding:0 24px}.sx h1{color:#fff;margin:0}
+.ck{display:grid;gap:10px;width:min(76vw,280px);margin:0 auto}
+.cd{height:66px;border-radius:16px;padding:13px 14px;display:grid;gap:8px;align-content:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);box-shadow:0 18px 40px -16px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.22);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:cdIn .95s cubic-bezier(.2,.9,.25,1.12) both;animation-delay:calc(.15s + var(--i)*.15s)}
+.cd:nth-child(1){--r:-9deg}.cd:nth-child(2){--r:6deg}.cd:nth-child(3){--r:-5deg}
+.cd .l1{height:8px;border-radius:5px;background:rgba(255,255,255,.62)}.cd .l2{height:6px;width:34%;border-radius:5px;background:rgba(255,255,255,.22)}
+.cd .bt{height:5px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden}.cd .bt div{height:100%;width:var(--p);border-radius:5px;background:color-mix(in srgb,var(--c3) 75%,#fff);animation:fill .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(1s + var(--i)*.12s)}
+.ct{margin-top:26px!important;font-size:30px;font-weight:700;letter-spacing:-.02em;animation:fi .9s 1.4s both}
+.wm{font-size:42px;line-height:1.2;letter-spacing:-.02em;overflow:hidden;padding:.05em 0}.wm b{display:inline-block;font-weight:inherit;animation:rise2 .85s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(.2s + var(--i)*55ms)}.wm .my{font-weight:300}.wm .as{font-weight:700}
+.wl{height:2px;width:0;margin:14px auto 12px;border-radius:2px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c3) 70%,#fff),transparent);animation:wlg .9s 1.15s cubic-bezier(.2,.8,.2,1) forwards}
+.wt{margin:0;font-size:14px;letter-spacing:.04em;opacity:.65;animation:fi 1s 1.5s both}
+.sglow{position:absolute;left:50%;top:38%;width:340px;height:170px;margin:-85px 0 0 -170px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c2) 55%,transparent),transparent);animation:glw 2.1s ease-out both}
+.sh{position:relative;font-size:44px;letter-spacing:-.02em;background:linear-gradient(100deg,#fff 0%,#fff 44%,color-mix(in srgb,var(--c3) 55%,#fff) 50%,rgba(255,255,255,.1) 56%,rgba(255,255,255,.1) 100%);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;animation:shim 1.7s .25s cubic-bezier(.5,0,.2,1) both}
+.sx .wt{position:relative;margin-top:14px}
+@keyframes cdIn{from{opacity:0;transform:translateY(150px) rotate(var(--r)) scale(.88)}}@keyframes fill{from{width:0}}@keyframes rise2{from{transform:translateY(115%)}}@keyframes wlg{to{width:min(60vw,220px)}}
+@keyframes glw{from{opacity:0;transform:scale(.4)}60%{opacity:1}to{opacity:.75;transform:scale(1.1)}}@keyframes shim{from{background-position:100% 0}to{background-position:0 0}}
+#lg{overflow-y:auto}.lw{width:min(92vw,400px);margin:auto;padding:24px 0;animation:rise .5s cubic-bezier(.2,.8,.2,1)}.lw h1{text-align:center}.lw>.sub{text-align:center;margin:4px 0 20px}
+.lb{width:58px;height:58px;border-radius:17px;background:linear-gradient(135deg,var(--c1),var(--c3));display:grid;place-items:center;margin:0 auto 14px;color:#fff;font-size:26px;box-shadow:0 8px 24px color-mix(in srgb,var(--c1) 35%,transparent)}
+.lcard{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:22px 20px;box-shadow:0 12px 40px rgba(0,0,0,.08)}
+.lt{display:flex;background:var(--bg);border-radius:10px;padding:3px;margin-bottom:16px}.lt button{flex:1;border:0;background:none;padding:9px;border-radius:8px;font-weight:600;color:var(--mu);cursor:pointer}.lt button.on{background:var(--card);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.gb,.fpb{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:10px;font-weight:600;cursor:pointer}.gb{border:1px solid var(--bd);background:var(--card)}.fpb{border:0}
+.or{display:flex;align-items:center;gap:10px;color:var(--mu);font-size:12px;margin:14px 0}.or::before,.or::after{content:'';flex:1;height:1px;background:var(--bd)}
+.who{display:flex;align-items:center;gap:12px;margin-bottom:16px;text-align:left;overflow-wrap:anywhere}button.x.lk{display:block;margin:10px auto 0;font-size:13px}#lerr{text-align:center;margin-top:8px}
+</style></head><body><div class="app">
+<header><div><h1 id="hi">My Assistant</h1><div class="sub" id="dt"></div></div>
+<div class="hb"><button class="ib" onclick="notif()" title="Reminders" aria-label="Reminders"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17v-6a6 6 0 0 1 12 0v6l1.5 2h-15zM10 21h4"/></svg></button><button class="ib" id="pb" onclick="tab='set';R()" title="Settings"></button></div></header>
+<nav id="nav"></nav><main id="v"></main>
+<div class="sm" style="margin-top:20px">Data is saved in this browser only. <a href="#" onclick="exp();return false">Export backup</a> · <a href="#" onclick="rs();return false">Reset all data</a> · <label style="cursor:pointer;text-decoration:underline">Import<input type="file" hidden onchange="imp(this)"></label></div>
+</div><div id="toast"></div><div id="sh"></div><div id="lg" class="on"></div><datalist id="pl"></datalist><div id="sp"></div>
+<script>
+const $=s=>document.querySelector(s);let K='assistant.v2';
+const pad=n=>String(n).padStart(2,'0'),ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const TD=()=>ds(new Date()),MK=d=>d.slice(0,7),uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CATS=['Food','Transport','Study','Bills','Shopping','Health','Other'];
+let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+const D={areas:[],goals:[],habits:[],learn:[],tx:[],cats:[],budgets:{},income:{},notes:[],items:[],bo:{},plans:[],ap:'',fc:null,set:{}};
+function norm(){S=S||{};for(const k in D)if(!S[k])S[k]=JSON.parse(JSON.stringify(D[k]));const I=S.ielts=S.ielts||{};I.cur=I.cur||{L:'',R:'',W:'',S:''};I.mocks=I.mocks||[];I.study=Array.isArray(I.study)?I.study:[];I.date=I.date||'';I.target=I.target||'';if(!S.plans.length&&S.items.length)S.plans.push({id:'ielts',name:'IELTS',secs:[['L','Listening'],['R','Reading'],['W','Writing'],['S','Speaking']].map(a=>({id:a[0],name:a[1]}))});if(!S.ap&&S.plans[0])S.ap=S.plans[0].id;S.set=Object.assign({theme:'system',ac:''},S.set);if(!S.catsInit){if(!S.cats.length)S.cats=CATS.slice();S.catsInit=1}S.habits.forEach(h=>{h.log=h.log||{};h.created=h.created||Object.keys(h.log).sort()[0]||TD();h.days=h.days||(h.freq=='weekdays'?[1,2,3,4,5]:h.freq=='weekends'?[0,6]:[0,1,2,3,4,5,6]);h.note=h.note||''});S.goals.forEach(g=>{g.h=g.h||[];g.pr=g.pr||'m'})}
+norm();
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}window.CLOUD&&CLOUD.q()};
+let tab='today',pm=MK(TD()),fa='All';
+const TABS=[['today','Today'],['ielts','IELTS'],['plan','Goals'],['habits','Habits'],['money','Money'],['areas','Areas']];
+const money=n=>'৳'+Math.round(n).toLocaleString();
+const areaOpts=()=>'<option value="">No area</option>'+S.areas.map(a=>`<option>${esc(a)}</option>`).join('');
+const pct=(a,b)=>b>0?Math.min(100,Math.round(a/b*100)):0;
+const IC={today:'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',ielts:'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13',plan:'M4 5h16v15H4zM4 10h16M9 3v4M15 3v4',habits:'M5 13l4 4L19 7',money:'M3 7h18v12H3zM3 11h18M16 15h2',areas:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'};
+function nav(){$('#nav').innerHTML=TABS.map(t=>`<button class="${tab==t[0]?'on':''}" onclick="tab='${t[0]}';R()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${IC[t[0]]}"/></svg><span>${t[0]=='ielts'?'Study':t[1]}</span></button>`).join('')}
+function R(){nav();$('#dt').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const h=new Date().getHours();$('#hi').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+cur.name;
+$('#v').innerHTML=V[tab]();$('#pl').innerHTML=purposes();$('#pb').textContent=cur.emoji;save()}
+const V={
+today(){const t=TD(),hs=S.habits.filter(h=>due(h,new Date())),dn=hs.filter(h=>h.log[t]).length;
+const gs=S.goals.filter(g=>g.m==MK(t)||(g.due&&g.start<=t&&g.due>=t)),gp=gs.length?Math.round(gs.reduce((a,g)=>a+pct(g.done,g.target),0)/gs.length):0;
+const sp=S.tx.filter(x=>x.date==t&&x.type!='in').reduce((a,x)=>a+x.amt,0);
+const lt=S.learn.filter(x=>x.date==t);
+return focusCard()+brief()+`<div class="kpis"><div class="kpi"><div class="sm">Today's tasks</div><div class="big">${dn}/${hs.length}</div></div>
+<div class="kpi"><div class="sm">Goal progress</div><div class="big">${gp}%</div></div>
+<div class="kpi"><div class="sm">Spent today</div><div class="big">${money(sp)}</div></div></div>
+<div class="grid"><div class="card"><h2>Today's routine</h2>${hs.map(h=>`<div class="row"><input type="checkbox" ${h.log[t]?'checked':''} onchange="tg('${h.id}')"><div class="g">${esc(h.title)}<div class="sm">${h.time?h.time+', ':''}streak ${streak(h)}</div></div><span class="tag">${esc(h.area)}</span></div>`).join('')||'<div class="sm">Nothing due today. Add habits in the Habits tab.</div>'}</div>
+<div class="card"><h2>Something new I learned today</h2><form onsubmit="return al(this)" style="margin:0 0 8px"><input name="t" placeholder="Word, idiom, rule, fact…" required><button class="b">Save</button></form>
+${lt.map(x=>`<div class="row"><div class="g">${ei('learn',x,'text')}</div><button class="x" onclick="ask('learn','${x.id}')">⋯</button></div>`).join('')}
+<div class="sm" style="margin-top:8px">Past entries (revise these):</div>${S.learn.filter(x=>x.date!=t).slice(-6).reverse().map(x=>`<div class="row"><div class="g">${ei('learn',x,'text')}</div><span class="sm">${x.date.slice(5)}</span><button class="x" onclick="ask('learn','${x.id}')">⋯</button></div>`).join('')||'<div class="sm">None yet.</div>'}</div>
+<div class="card"><h2>Goals in progress</h2>${gs.filter(g=>g.done<g.target).map(g=>gl(g,1)).join('')||'<div class="sm">No active goals. Add one in the Goals tab.</div>'}</div></div>`},
+money(){const m=MK(TD()),tx=S.tx.filter(x=>MK(x.date)==m),ex=tx.filter(x=>x.type!='in'),sp=ex.reduce((a,x)=>a+x.amt,0),inc=tx.filter(x=>x.type=='in').reduce((a,x)=>a+x.amt,0)+(+S.income[m]||0);
+const now=new Date(),dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),dd=now.getDate(),avg=sp/dd,proj=avg*dim,bt=Object.values(S.budgets).reduce((a,b)=>a+(+b||0),0);
+const by={};ex.forEach(x=>by[x.cat]=(by[x.cat]||0)+x.amt);
+const ins=[];S.cats.forEach(c=>{const b=+S.budgets[c]||0,s=by[c]||0;if(b&&s>b)ins.push(['bad',`${c}: overspent by ${money(s-b)} (${pct(s,b)}% of budget).`]);else if(b&&s>b*.8)ins.push(['',`${c}: ${pct(s,b)}% of budget used. Slow down.`])});
+const top=Object.entries(by).sort((a,b)=>b[1]-a[1])[0];if(top)ins.push(['',`Biggest category: ${top[0]} (${pct(top[1],sp)}% of spending).`]);
+if(bt&&proj>bt)ins.push(['bad',`At this pace you'll spend ${money(proj)} vs budget ${money(bt)}.`]);else if(bt)ins.push(['ok',`On track: projected ${money(proj)} vs budget ${money(bt)}.`]);
+{const z=[...Array(dd)].filter((_,i)=>!ex.some(x=>+x.date.slice(8)==i+1)).length;ins.push(['ok',`No-spend days this month: ${z} of ${dd}.`])}
+if(inc)ins.push([sp>inc?'bad':'ok',`Savings so far: ${money(inc-sp)} (${Math.round((inc-sp)/inc*100)}% of income).`]);
+return `<div class="kpis"><div class="kpi"><div class="sm">Spent this month</div><div class="big">${money(sp)}</div></div><div class="kpi"><div class="sm">Income</div><div class="big">${money(inc)}</div></div><div class="kpi"><div class="sm">Daily average</div><div class="big">${money(avg)}</div></div><div class="kpi"><div class="sm">Projected month</div><div class="big ${bt&&proj>bt?'bad':''}">${money(proj)}</div></div></div>
+<div class="card" style="margin-bottom:12px"><h2>Daily spending, last 14 days</h2>${chart14()}</div><div class="grid"><div class="card"><h2>Add transaction</h2><form onsubmit="return at(this)" style="margin:0"><input name="a" type="number" min="0" step="any" placeholder="Amount" required><select name="y"><option value="out">Expense</option><option value="in">Income</option></select><select name="c">${S.cats.map(c=>`<option>${c}</option>`).join('')}</select><input name="d" type="date" value="${TD()}"><input name="n" placeholder="Note" style="flex:2 1 140px"><button class="b">Add</button></form>
+<h2 style="margin-top:16px">Recent</h2>${S.tx.slice(-20).reverse().map(x=>`<div class="row"><div class="g">${ei('tx',x,'note')}<div class="sm">${ei('tx',x,'date','date',140)}<select class="ti" onchange="up('tx','${x.id}','cat',this.value)">${S.cats.map(c=>`<option ${c==x.cat?'selected':''}>${esc(c)}</option>`).join('')}</select></div></div><span class="${x.type=='in'?'ok':''}">${x.type=='in'?'+':'−'}</span>${ei('tx',x,'amt','number',90)}<button class="x" onclick="ask('tx','${x.id}')">⋯</button></div>`).join('')||'<div class="sm">No entries yet.</div>'}</div>
+<div class="card"><h2>Budget vs actual</h2>${S.cats.map((c,i)=>{const b=+S.budgets[c]||0,s=by[c]||0,o=b&&s>b;return `<div style="margin-bottom:10px"><div class="row" style="border:0;padding:0"><div class="g"><input class="ti" value="${esc(c)}" onchange="rc(${i},this.value)"></div><span class="${o?'bad':''}">${money(s)} /</span><input type="number" min="0" value="${b||''}" placeholder="budget" style="width:90px;padding:4px 6px" onchange="sb(${i},this.value)"><button class="x" onclick="ask('cats',${i})">⋯</button></div><div class="bar ${o?'bad':''}"><i style="width:${b?pct(s,b):(s?100:0)}%"></i></div></div>`}).join('')}
+<form onsubmit="return ac(this)"><input name="t" placeholder="New category (e.g. Rent)" required><button class="b">Add category</button></form><div style="margin-top:8px"><span class="sm">Monthly income (optional): </span><input type="number" value="${S.income[m]||''}" style="width:110px;padding:4px 6px" onchange="S.income['${m}']=+this.value;R()"></div></div>
+<div class="card"><h2>Audit insights</h2>${ins.map(i=>`<div class="ins ${i[0]}">${i[1]}</div>`).join('')||'<div class="sm">Add expenses and budgets to get insights.</div>'}</div></div>`},
+areas(){return `<div class="card"><h2>Life areas</h2><div class="sm" style="margin-bottom:8px">IELTS today, a job or anything else tomorrow. Goals and habits can belong to any area.</div>${S.areas.map((a,i)=>`<div class="row"><div class="g"><input class="ti" value="${esc(a)}" onchange="ra(${i},this.value)"></div><span class="sm">${S.goals.filter(g=>g.area==a).length} goals · ${S.habits.filter(h=>h.area==a).length} habits</span><button class="x" onclick="ask('areas',${i})">⋯</button></div>`).join('')}
+<form onsubmit="return aa(this)"><input name="t" placeholder="New area (e.g. Job, Fitness)" required><button class="b">Add area</button></form></div>`}};
+const dif=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5),eom=m=>{const[y,o]=m.split('-').map(Number);return ds(new Date(y,o,0))},r1=n=>Math.round(n*10)/10;
+const NUM=['target','done','amt'];
+const ei=(k,o,f,ty='text',w)=>`<input class="ti" type="${ty}" ${ty=='number'?'step="any"':''} value="${esc(o[f]??'')}" ${w?`style="width:${w}px"`:''} onchange="up('${k}','${o.id}','${f}',this.value)">`;
+const ar=(k,o)=>`<select class="ti" onchange="up('${k}','${o.id}','area',this.value)"><option value="">No area</option>${S.areas.map(a=>`<option ${a==o.area?'selected':''}>${esc(a)}</option>`).join('')}</select>`;
+function up(k,id,f,v){const o=S[k].find(x=>x.id==id);if(!o)return;o[f]=NUM.includes(f)?+v:v;R()}
+const sb=(i,v)=>{S.budgets[S.cats[i]]=+v;R()},dc=i=>{S.cats.splice(i,1);R()};
+function rc(i,v){v=v.trim();const o=S.cats[i];if(!v||v==o)return R();S.cats[i]=v;S.tx.forEach(x=>{if(x.cat==o)x.cat=v});S.budgets[v]=S.budgets[o];delete S.budgets[o];R()}
+function ac(f){const t=F(f).t.trim();if(t&&!S.cats.includes(t))S.cats.push(t);R();return false}
+function ra(i,v){v=v.trim();const o=S.areas[i];if(!v||v==o)return R();S.areas[i]=v;S.goals.concat(S.habits).forEach(x=>{if(x.area==o)x.area=v});if(fa==o)fa=v;R()}
+function da(i){const o=S.areas.splice(i,1)[0];S.goals.concat(S.habits).forEach(x=>{if(x.area==o)x.area=''});if(fa==o)fa='All';R()}
+function an(f){S.notes.push({id:uid(),t:F(f).t});R();return false}
+function ai(f){const d=F(f);S.items.push({id:uid(),p:cp().id,k:d.k,t:d.t,d:false});R();return false}
+function um(i,f,v){const m=S.ielts.mocks[i];m[f]=v;m.o=band([m.L,m.R,m.W,m.S]);R()}
+function us(i,f,v){S.ielts.study[i][f]=v;R()}
+let rsc=0;function rs(){if(!rsc){rsc=1;toast('Tap "Reset all data" again to erase everything');setTimeout(()=>rsc=0,6000);return}secure(()=>{localStorage.removeItem(K);location.reload()})}
+const F=f=>Object.fromEntries(new FormData(f));
+function al(f){S.learn.push({id:uid(),date:TD(),text:F(f).t});R();return false}
+function at(f){const d=F(f);if(!d.c){toast('Add a category first (Budget card)');return false}S.tx.push({id:uid(),amt:+d.a,type:d.y,cat:d.c,date:d.d,note:d.n});S.tx.sort((a,b)=>a.date<b.date?-1:1);R();return false}
+function aa(f){const t=F(f).t;secure(()=>{if(!S.areas.includes(t))S.areas.push(t);R()});return false}
+function del(k,id){S[k]=S[k].filter(x=>x.id!=id);R()}
+function roll(){const [y,m]=pm.split('-').map(Number),n=new Date(y,m,1),nk=ds(n).slice(0,7);
+S.goals.filter(g=>g.m==pm&&g.done<g.target).forEach(g=>S.goals.push({...g,id:uid(),m:nk,done:0,start:nk+'-01',due:eom(nk)}));pm=nk;R()}
+function exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='assistant-backup.json';a.click()}
+function imp(i){const r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);norm();R()}catch(e){toast('Invalid file')}};r.readAsText(i.files[0])}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',5000)}
+function notif(){if(!('Notification' in window))return toast('Notifications not supported here. In-page reminders still work.');Notification.requestPermission().then(p=>toast(p=='granted'?'Reminders enabled ✔':'Blocked. In-page reminders still work.'))}
+const fired=new Set();
+setInterval(()=>{if(!cur)return;const n=new Date(),hm=pad(n.getHours())+':'+pad(n.getMinutes()),t=TD();
+S.habits.forEach(h=>{const k=h.id+t;if(h.time&&hm>=h.time&&mn(hm)-mn(h.time)<30&&due(h,n)&&!h.log[t]&&!fired.has(k)){fired.add(k);toast(''+h.title);try{if(Notification.permission=='granted')new Notification('Reminder',{body:h.title})}catch(e){}}})},30000);
+
+const SK={L:'Listening',R:'Reading',W:'Writing',S:'Speaking'};
+const band=a=>{a=a.map(Number).filter(x=>x>0);return a.length?Math.round(a.reduce((x,y)=>x+y)/a.length*2)/2:0};
+function chart14(){const v=[];let d=new Date();d.setDate(d.getDate()-13);for(let i=0;i<14;i++){const k=ds(d);v.push([k,S.tx.filter(x=>x.date==k&&x.type!='in').reduce((a,x)=>a+x.amt,0)]);d.setDate(d.getDate()+1)}const mx=Math.max(1,...v.map(x=>x[1]));
+return `<svg viewBox="0 0 560 130" width="100%">${v.map((x,i)=>{const h=x[1]/mx*85;return `<rect class="b1" x="${i*40+6}" y="${100-h}" width="28" height="${h}" rx="5"/><text class="tx" x="${i*40+20}" y="118" text-anchor="middle">${x[0].slice(8)}</text>${x[1]?`<text class="tx" x="${i*40+20}" y="${95-h}" text-anchor="middle">${Math.round(x[1])}</text>`:''}`}).join('')}</svg>`}
+function spark(v){if(v.length<2)return '<div class="sm">Log two or more mock tests to see your trend.</div>';const w=300,h=80,pt=v.map((y,i)=>[10+i*(w-20)/(v.length-1),h-10-(y-4)/5*(h-20)]);
+return `<svg viewBox="0 0 ${w} ${h}" width="100%"><polyline points="${pt.map(q=>q.join(',')).join(' ')}" fill="none" class="ln" stroke-width="2.5"/>${pt.map((q,i)=>`<circle class="cir" cx="${q[0]}" cy="${q[1]}" r="4"/><text class="tx" x="${q[0]}" y="${q[1]-8}" text-anchor="middle">${v[i]}</text>`).join('')}</svg>`}
+function wkMin(){const r={t:0},c=new Date();c.setDate(c.getDate()-6);const a=ds(c);S.ielts.study.forEach(x=>{if(x.date>=a)r.t+=+x.m||0});return r}
+const BO=[['cd','Exam countdown'],['pace','Goal pace per day'],['streak','Streak-at-risk alerts'],['study','Weekly study hours'],['budget','Budget used']];
+function brief(){const n=new Date(),t=TD(),I=S.ielts,o=S.bo,L=[];
+if(o.cd&&I.date){const d=Math.ceil((new Date(I.date)-n)/864e5);L.push(d>0?`${d} days to the test`+(I.target?` · target ${I.target}`:''):'Test day has arrived')}
+const dl=new Date(n.getFullYear(),n.getMonth()+1,0).getDate()-n.getDate()+1;
+if(o.pace)S.goals.filter(g=>g.done<g.target&&(g.start||g.m+'-01')<=t&&(g.due||eom(g.m))>=t).forEach(g=>L.push(`${esc(g.title)}: <b>${r1(gcalc(g).need)} ${esc(g.unit||'')}/day</b> to finish by ${(g.due||eom(g.m)).slice(5)}`));
+if(o.streak)S.habits.filter(h=>due(h,n)&&!h.log[t]&&streak(h)>=3).forEach(h=>L.push(`${streak(h)}-day streak at risk: ${esc(h.title)}`));
+if(o.study){const m=wkMin();L.push(`Study this week: <b>${(m.t/60).toFixed(1)} h</b>`)}
+const bt=Object.values(S.budgets).reduce((a,b)=>a+(+b||0),0),sp=S.tx.filter(x=>MK(x.date)==MK(t)&&x.type!='in').reduce((a,x)=>a+x.amt,0);if(o.budget&&bt)L.push(`Budget used: <b>${pct(sp,bt)}%</b> (${money(sp)} of ${money(bt)})`);
+return `<div class="card hero"><h2>My briefing</h2>${L.map(x=>`<div class="ins">${x}</div>`).join('')}${S.notes.map(x=>`<div class="row" style="border:0;padding:2px 0"><input class="ti" value="${esc(x.t)}" onchange="up('notes','${x.id}','t',this.value)"><button class="x" style="color:#fff" onclick="ask('notes','${x.id}')">⋯</button></div>`).join('')}
+<form onsubmit="return an(this)"><input name="t" placeholder="Write your own reminder or note…" required><button class="b" style="background:#fff;color:var(--ac)">Add</button></form>
+<details style="margin-top:8px"><summary class="sm" style="color:#fff;cursor:pointer">Choose what appears automatically (all off by default)</summary>${BO.map(b=>`<label class="row" style="border:0;padding:3px 0"><input type="checkbox" ${o[b[0]]?'checked':''} onchange="S.bo['${b[0]}']=this.checked;R()">${b[1]}</label>`).join('')}</details></div>`}
+V.ielts=()=>{const I=S.ielts,cur=I.mocks.length?I.mocks[I.mocks.length-1].o:band(Object.values(I.cur)),m=wkMin(),its=k=>S.items.filter(x=>x.k==k),dn=k=>its(k).filter(x=>x.d).length,so=k=>Object.keys(SK).map(j=>`<option value="${j}" ${j==k?'selected':''}>${SK[j]}</option>`).join('');
+return focusCard()+`<div class="grid"><div class="card"><h2>Exam goal</h2><label class="sm">Exam / plan name<input value="${esc(I.name||'')}" placeholder="e.g. IELTS Academic" onchange="S.ielts.name=this.value;R()" style="width:100%"></label>
+<div class="two" style="margin-top:8px"><label class="sm">Test date<input type="date" value="${I.date}" onchange="S.ielts.date=this.value;R()" style="width:100%"></label><label class="sm">Target band<input type="number" min="0" max="9" step=".5" value="${I.target}" onchange="S.ielts.target=this.value;R()" style="width:100%"></label></div>
+<div class="kpis" style="margin:12px 0 0"><div class="kpi"><div class="sm">Current estimate</div><div class="big">${cur||'–'}</div></div><div class="kpi"><div class="sm">Gap to target</div><div class="big">${cur&&I.target?Math.max(0,I.target-cur):'–'}</div></div></div>
+<h2 style="margin-top:14px">Current band by skill</h2><div class="two">${Object.keys(SK).map(k=>`<label class="sm">${SK[k]}<input type="number" min="0" max="9" step=".5" value="${I.cur[k]}" onchange="S.ielts.cur.${k}=this.value;R()" style="width:100%"></label>`).join('')}</div>
+${Object.keys(SK).map(k=>`<div style="margin-top:8px"><div class="row" style="border:0;padding:0"><div class="g sm">${SK[k]}</div><span class="sm">${I.cur[k]||0} / ${I.target||'–'}</span></div><div class="bar ${I.target&&I.cur[k]>=I.target?'ok':''}"><i style="width:${pct(I.cur[k],I.target)}%"></i></div></div>`).join('')}</div>
+<div class="card"><h2>Mock tests</h2>${spark(I.mocks.map(x=>x.o))}<form onsubmit="return lm(this)">${Object.keys(SK).map(k=>`<input name="${k}" type="number" min="0" max="9" step=".5" placeholder="${SK[k][0]}" required style="flex:1 1 55px">`).join('')}<button class="b">Log mock</button></form>
+${I.mocks.map((x,i)=>`<div class="row" style="flex-wrap:wrap"><b>${x.o}</b>${Object.keys(SK).map(k=>`<input class="ti" type="number" step=".5" title="${SK[k]}" value="${x[k]}" style="width:56px" onchange="um(${i},'${k}',this.value)">`).join('')}<input class="ti" type="date" value="${x.date}" style="width:135px" onchange="um(${i},'date',this.value)"><button class="x" onclick="ask('mocks',${i})">⋯</button></div>`).reverse().join('')}</div>
+<div class="card"><h2>Study sessions (last 7 days: ${(m.t/60).toFixed(1)} h)</h2><form onsubmit="return ls(this)" style="margin:0 0 8px"><input name="k" list="pl" placeholder="Purpose, e.g. Writing task 2" required style="flex:2 1 150px"><input name="m" type="number" min="1" placeholder="Minutes" required><button class="b">Log</button></form>
+${I.study.map((x,i)=>`<div class="row"><input class="ti" list="pl" value="${esc(SK[x.k]||x.k||'')}" onchange="us(${i},'k',this.value)">${x.a?`<span class="tag">${esc(x.a)}</span>`:''}<input class="ti" type="number" value="${x.m}" style="width:70px" onchange="us(${i},'m',this.value)"><span class="sm">min</span><input class="ti" type="date" value="${x.date}" style="width:135px" onchange="us(${i},'date',this.value)"><button class="x" onclick="ask('study',${i})">⋯</button></div>`).slice(-10).reverse().join('')||'<div class="sm">No sessions yet.</div>'}</div></div>
+${planCard()}`};
+function lm(f){const d=F(f);S.ielts.mocks.push({date:TD(),L:d.L,R:d.R,W:d.W,S:d.S,o:band([d.L,d.R,d.W,d.S])});R();return false}
+function ls(f){const d=F(f);S.ielts.study.push({date:TD(),k:d.k,m:+d.m});R();return false}
+// ---- focus timer ----
+const fmt=ms=>{const t=Math.floor(ms/1000);return pad(Math.floor(t/3600))+':'+pad(Math.floor(t%3600/60))+':'+pad(t%60)};
+const purposes=()=>[...new Set(S.ielts.study.map(x=>SK[x.k]||x.k).filter(Boolean))].map(p=>`<option value="${esc(p)}">`).join('');
+let fdur=25,farea='',fpur='';
+const felap=f=>f.acc+(f.pa?0:Date.now()-f.s),cdn=ms=>{const t=Math.ceil(Math.max(0,ms)/1000),h=Math.floor(t/3600);return(h?pad(h)+':':'')+pad(Math.floor(t%3600/60))+':'+pad(t%60)};
+const focusCard=()=>{const f=S.fc&&S.fc.d?S.fc:(S.fc=null);
+if(f){const tot=f.d*1000,pr=Math.min(100,100*felap(f)/tot);
+return `<div class="card fc2" style="margin-bottom:12px"><div class="tm"><svg viewBox="0 0 100 100" width="124" height="124"><circle cx="50" cy="50" r="44" fill="none" stroke="var(--bd)" stroke-width="6"/><circle id="fr" cx="50" cy="50" r="44" fill="none" stroke="var(--c1)" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${100-pr}" transform="rotate(-90 50 50)"/></svg><div class="ft" id="ft">${cdn(tot-felap(f))}</div></div>
+<div class="g"><div class="sm">${f.a?esc(f.a)+' · ':''}${f.pa?'Paused':'Focusing on'}</div><b>${esc(f.p||f.a||'Focus')}</b><div class="sm">${Math.round(f.d/6)/10} min session</div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;width:100%"><button class="b ghost" onclick="fpz()" style="flex:1">${f.pa?'Resume':'Pause'}</button><button class="b" onclick="fend()" style="flex:2">Finish &amp; log</button><button class="b ghost" onclick="fdis()">Discard</button></div></div>`}
+const pre=[15,25,45,60,90];
+return `<div class="card" style="margin-bottom:12px"><h2>Focus timer</h2><div class="sm" style="margin-bottom:6px">1. Set the timer</div><div class="chips">${pre.map(m=>`<button class="chip ${fdur==m?'on':''}" onclick="fdur=${m};R()">${m} min</button>`).join('')}<input type="number" min="1" max="600" value="${pre.includes(fdur)?'':fdur||''}" placeholder="Custom" oninput="fdur=+this.value" style="width:92px;border-radius:999px"></div>
+<div class="sm" style="margin:12px 0 6px">2. Choose the area</div><select onchange="farea=this.value" style="width:100%"><option value="">No area</option>${S.areas.map(a=>`<option ${a==farea?'selected':''}>${esc(a)}</option>`).join('')}</select>${S.areas.length?'':'<div class="sm" style="margin-top:4px">Add areas in the Areas tab to pick one here.</div>'}
+<div class="sm" style="margin:12px 0 6px">3. Start</div><form onsubmit="return fst()" style="margin:0"><input placeholder="What will you work on? e.g. Writing task 2" list="pl" value="${esc(fpur)}" oninput="fpur=this.value" style="flex:1 1 100%"><button class="b" style="flex:1 1 100%">Start timer</button></form></div>`};
+function fst(){if(!(fdur>0)){toast('Set the timer length first');return false}S.fc={p:fpur.trim(),a:farea,d:Math.round(fdur*60),s:Date.now(),acc:0,pa:false};fpur='';R();return false}
+function fpz(){const f=S.fc;if(f.pa){f.s=Date.now();f.pa=false}else{f.acc+=Date.now()-f.s;f.pa=true}R()}
+function fend(){const f=S.fc,m=Math.max(1,Math.round(Math.min(felap(f),f.d*1000)/60000));S.ielts.study.push({date:TD(),k:f.p||f.a||'Focus',a:f.a,m});S.fc=null;toast('Logged '+m+' min');R()}
+function fdis(){sheet(`<h3>Discard this session?</h3><p class="sm">The time so far will not be logged.</p><div class="two"><button class="b ghost" onclick="closeSheet()">Keep going</button><button class="b dg" onclick="S.fc=null;closeSheet();R()">Discard</button></div>`)}
+setInterval(()=>{if(!cur||!S.fc)return;const f=S.fc;if(!f.d){S.fc=null;return}const rem=f.d*1000-felap(f);if(rem<=0&&!f.pa){const p=f.p||f.a||'Focus';fend();hap([200,80,200,80,320]);try{if(Notification.permission=='granted')new Notification('Focus session complete',{body:p})}catch(e){}return}const e=$('#ft');if(e){e.textContent=cdn(rem);$('#fr').setAttribute('stroke-dashoffset',100-Math.min(100,100*felap(f)/(f.d*1000)))}},1000);
+// ---- study plans ----
+const cp=()=>S.plans.find(p=>p.id==S.ap)||S.plans[0];
+function planCard(){const p=cp();const hd=`<div class="card" style="margin-top:12px"><h2>Study plans</h2><div class="chips">${S.plans.map(x=>`<button class="chip ${p&&x.id==p.id?'on':''}" onclick="S.ap='${x.id}';R()">${esc(x.name)}</button>`).join('')}</div>
+<form onsubmit="return np(this)"><input name="n" placeholder="New plan name, e.g. Writing sprint" required style="flex:2 1 160px"><button class="b">Create from scratch</button>${S.plans.some(x=>x.id=='ielts')?'':'<button type="button" class="b ghost" onclick="tplI()">Add IELTS template</button>'}</form>`;
+if(!p)return hd+'<div class="sm" style="margin-top:8px">Create a plan, add your own sections, then add topics to each.</div></div>';
+const its=s=>S.items.filter(x=>(x.p||'ielts')==p.id&&x.k==s);
+return hd+`<div class="row" style="border:0;margin-top:10px"><input class="ti" style="font-weight:600" value="${esc(p.name)}" onchange="cp().name=this.value;R()"><button class="b ghost" onclick="dup()">Duplicate</button><button class="b ghost" onclick="rnd()">New round</button><button class="x" onclick="ask('plans','${p.id}')">⋯</button></div>
+<form onsubmit="return sc(this)"><input name="n" placeholder="Add a section (any name you need)" required><button class="b">Add section</button></form>
+${p.secs.length?`<form onsubmit="return ai(this)"><select name="k">${p.secs.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select><input name="t" placeholder="Add a topic or task" required style="flex:3 1 200px"><button class="b">Add</button></form>`:''}
+<div class="grid" style="margin-top:8px">${p.secs.map(s=>{const a=its(s.id),d=a.filter(x=>x.d).length;return `<div><div class="row" style="border:0"><input class="ti g" style="font-weight:600" value="${esc(s.name)}" onchange="cp().secs.find(z=>z.id=='${s.id}').name=this.value;R()"><span class="sm">${d}/${a.length}</span><button class="x" onclick="ask('secs','${s.id}')">⋯</button></div><div class="bar"><i style="width:${pct(d,a.length)}%"></i></div>${a.map(x=>`<div class="row"><input type="checkbox" ${x.d?'checked':''} onchange="up('items','${x.id}','d',this.checked)"><div class="g">${ei('items',x,'t')}</div><button class="x" onclick="ask('items','${x.id}')">⋯</button></div>`).join('')||'<div class="sm">Nothing added yet.</div>'}</div>`}).join('')}</div></div>`}
+function np(f){const id=uid();S.plans.push({id,name:F(f).n.trim(),secs:[]});S.ap=id;R();return false}
+function sc(f){cp().secs.push({id:uid(),name:F(f).n.trim()});R();return false}
+function dup(){const p=cp(),id=uid(),mp={},n={id,name:p.name+' (copy)',secs:p.secs.map(s=>{const i=uid();mp[s.id]=i;return{id:i,name:s.name}})};S.items.filter(x=>(x.p||'ielts')==p.id).forEach(x=>S.items.push({id:uid(),p:id,k:mp[x.k],t:x.t,d:false}));S.plans.push(n);S.ap=id;R()}
+function rnd(){S.items.forEach(x=>{if((x.p||'ielts')==cp().id)x.d=false});toast('Checks cleared. Ready for another round.');R()}
+function tplI(){S.plans.unshift({id:'ielts',name:'IELTS',secs:[['L','Listening'],['R','Reading'],['W','Writing'],['S','Speaking']].map(a=>({id:a[0],name:a[1]}))});S.ap='ielts';R()}
+// ---- delete panel + fingerprint ----
+let pend;const sheet=h=>{$('#sh').innerHTML='<div class="mask" onclick="closeSheet()"></div><div class="pan">'+h+'</div>';$('#sh').className='open'},closeSheet=()=>{$('#sh').className='';$('#sh').innerHTML=''};
+function ask(k,r){pend=[k,r];const o=k=='cats'?S.cats[r]:k=='areas'?S.areas[r]:k=='secs'?cp().secs.find(x=>x.id==r):(k=='mocks'||k=='study')?'this entry':S[k].find(x=>x.id==r);const n=typeof o=='string'?o:o?(o.title||o.text||o.t||o.note||o.name||'this item'):'this item';
+sheet(`<h3>${esc(n)}</h3><p class="sm">Deleting removes it for good.${S.set.fp?' Your fingerprint is needed.':''}</p><div class="two"><button class="b ghost" onclick="closeSheet()">Keep it</button><button class="b dg" onclick="cdel()">Delete</button></div>`)}
+function cdel(){hap([30,50,30]);const[k,r]=pend;secure(()=>{if(k=='cats')S.cats.splice(r,1);else if(k=='areas')da(r);else if(k=='mocks'||k=='study')S.ielts[k].splice(r,1);else if(k=='secs'){const p=cp();p.secs=p.secs.filter(x=>x.id!=r);S.items=S.items.filter(x=>!((x.p||'ielts')==p.id&&x.k==r))}else if(k=='plans'){S.plans=S.plans.filter(x=>x.id!=r);S.items=S.items.filter(x=>(x.p||'ielts')!=r);S.ap=S.plans[0]?S.plans[0].id:''}else del(k,r);closeSheet();R()})}
+const b64e=b=>btoa(String.fromCharCode(...new Uint8Array(b))),b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function secure(fn){if(!S.set.fp)return fn();try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:b64d(S.set.fp)}],userVerification:'required',timeout:60000}});fn()}catch(e){toast('Fingerprint check failed or was cancelled')}}
+async function enrollFp(){try{const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'My Assistant'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:cur.name,displayName:cur.name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});S.set.fp=b64e(c.rawId);if(AID)localStorage.setItem('assistant.fpb.'+AID,S.set.fp);toast('Fingerprint check is on');R()}catch(e){toast('Fingerprint is not available here. It needs a device with a fingerprint sensor and the app opened from an https:// address.')}}
+const offFp=()=>secure(()=>{delete S.set.fp;if(AID)localStorage.removeItem('assistant.fpb.'+AID);R()});
+// ---- profiles, login, settings ----
+let cur=null,AID=null;const PKEY=()=>'assistant.profiles'+(AID?'.'+AID:'');const PF=()=>{try{return(JSON.parse(localStorage.getItem(PKEY()))||[]).map(p=>({...p,emoji:p.emoji||'😊'}))}catch(e){return[]}},savePF=a=>localStorage.setItem(PKEY(),JSON.stringify(a));
+async function hs(p,salt){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){let h=5381;for(const c of salt+p)h=(h*33^c.charCodeAt(0))>>>0;return'x'+h}}
+function lgn(){const l=$('#lg');l.className='on';l.innerHTML=`<div class="lgc"><h1>My Assistant</h1><p class="sub">Choose your profile</p><div class="pg">${PF().map(p=>`<button class="av" onclick="pick('${p.id}')"><span class="em">${p.emoji}</span><b>${esc(p.name)}</b>${p.h?'<small class="sm">🔒 password</small>':''}</button>`).join('')}<button class="av" onclick="newP()"><span class="em">+</span><b>New profile</b></button></div></div>`}
+function pick(id){const p=PF().find(x=>x.id==id);if(!p.h)return enter(p);$('#lg').innerHTML=`<div class="lgc"><button class="x" onclick="lgn()" style="position:absolute;left:0;top:-44px">‹ Back</button><span class="em big">${p.emoji}</span><h2 style="margin-top:12px">${esc(p.name)}</h2><form onsubmit="chk(this,'${p.id}');return false" style="justify-content:center"><input name="pw" type="password" placeholder="Password" required style="flex:1 1 100%"><button class="b" style="flex:1 1 100%">Unlock</button></form><div class="sm bad" id="lerr"></div></div>`;setTimeout(()=>$('input[name=pw]').focus(),60)}
+async function chk(f,id){const p=PF().find(x=>x.id==id);if(await hs(F(f).pw,p.salt)==p.h){hap([12,40,22]);$('.em.big').classList.add('pop');$('.lgc').insertAdjacentHTML('beforeend','<i class="burst"></i>');setTimeout(()=>enter(p),380)}else{const c=$('.lgc');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');hap([40,50,40,50,60]);$('#lerr').textContent='Wrong password. Try again.';f.elements.pw.value=''}}
+function newP(){$('#lg').innerHTML=`<div class="lgc"><button class="x" onclick="lgn()" style="position:absolute;left:0;top:-44px">‹ Back</button><h2>New profile</h2><form onsubmit="mkP(this);return false" style="justify-content:center"><div class="pg" style="margin:0 0 6px;width:100%;gap:6px">${['😊','🧑‍🎓','👩‍💻','🦊','🌿','🚀','📚','🎧'].map((e,i)=>`<label class="pe"><input type="radio" name="e" value="${e}" ${i?'':'checked'} hidden><span>${e}</span></label>`).join('')}</div><input name="n" placeholder="Name" required style="flex:1 1 100%"><input name="pw" type="password" placeholder="Password (optional)" style="flex:1 1 100%"><button class="b" style="flex:1 1 100%">Create profile</button></form></div>`}
+async function mkP(f){const d=F(f),P=PF(),id=uid(),salt=uid(),p={id,name:d.n.trim(),emoji:d.e||(f.querySelector('input[name=e]:checked')||{}).value||'😊',key:'assistant.v2.'+id,salt,h:d.pw?await hs(d.pw,salt):''};P.push(p);savePF(P);enter(p)}
+function applyTheme(){const r=document.documentElement,t=S.set.theme;if(t=='system')r.removeAttribute('data-theme');else r.dataset.theme=t=='black'?'dark':t;r.classList.toggle('blk',t=='black');const c=PAL[S.set.pal]||PAL.pine;['--c1','--c2','--c3'].forEach((k,i)=>r.style.setProperty(k,c[i]));r.style.setProperty('--ac',c[0])}
+function enter(p){cur=p;K=p.key;try{S=JSON.parse(localStorage.getItem(K))}catch(e){S=null}norm();if(S.set.fp&&AID)localStorage.setItem('assistant.fpb.'+AID,S.set.fp);applyTheme();tab='today';const l=$('#lg');l.classList.add('out');setTimeout(()=>{l.className='';l.innerHTML=''},750);R()}
+function lock(){save();cur=null;LG()}
+// ---- account sign in: Firebase account = identity; fingerprint is verified on this device and unlocks the remembered account ----
+const cu=()=>window.CLOUD?CLOUD.u():null,lkey=()=>(window.FBERR?'e':'')+(window.CLOUD&&CLOUD.k()?'k':'')+((cu()||{}).uid||''),LAST=()=>{try{return JSON.parse(localStorage.getItem('assistant.last'))}catch(e){return null}},FPB=u=>localStorage.getItem('assistant.fpb.'+u),nameOf=u=>u.displayName||(u.email||'Me').split('@')[0];
+let LK='';const lgRe=()=>{if(!cur&&$('#lg .lw')&&LK!=lkey())LG()};
+const GI='<svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.8-9.9 6.8-17.1z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.8 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>',FPI='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 11v4M8 21c0-3 0-6 1-8M16 21c1-3 1-6 0-9M5 10a7 7 0 0 1 14 0M8 8a4 4 0 0 1 8 0"/></svg>';
+function ACC(u){AID=u?u.uid:null;if(!u)return;try{localStorage.setItem('assistant.last',JSON.stringify({uid:u.uid,email:u.email||'',name:nameOf(u)}));const L=localStorage.getItem('assistant.profiles'),A='assistant.profiles.'+u.uid;if(L&&!localStorage.getItem(A)&&!localStorage.getItem('assistant.legacy')){localStorage.setItem(A,L);localStorage.setItem('assistant.legacy','1')}}catch(e){}}
+function openAcc(){const u=cu()||(window.FBERR&&LAST());if(!u)return;ACC(u);AID=u.uid;let P=PF();if(!P.length){const id=uid();P=[{id,name:nameOf(u),emoji:'😊',key:'assistant.v2.'+id,salt:'',h:''}];savePF(P)}P.length==1&&!P[0].h?enter(P[0]):lgn()}
+function LG(up){const l=$('#lg'),u=cu(),ld=LAST(),hd='<div class="lb">✦</div><h1>My Assistant</h1>';LK=lkey();l.className='on';
+if(window.FBERR)return l.innerHTML=`<div class="lw">${hd}<p class="sub">Sign-in is unavailable right now</p><div class="lcard">${ld?`<button class="b" style="width:100%" onclick="offl()">Continue offline as ${esc(ld.email||ld.name)}</button>`:'<div class="sm">Connect to the internet to sign in for the first time.</div>'}<div class="sm bad" id="lerr"></div></div></div>`;
+if(!window.CLOUD||!CLOUD.k())return l.innerHTML=`<div class="lw">${hd}<p class="sub">Loading…</p></div>`;
+if(u){const g=u.providerData.some(x=>x.providerId=='google.com'),w=u.providerData.some(x=>x.providerId=='password'),f=FPB(u.uid);
+return l.innerHTML=`<div class="lw">${hd}<p class="sub">Welcome back</p><div class="lcard"><div class="who"><span class="em sm1">${esc(nameOf(u)[0].toUpperCase())}</span><div><b>${esc(nameOf(u))}</b><div class="sm">${esc(u.email||'')}</div></div></div>${f?`<button class="b fpb" onclick="fpIn()">${FPI} Sign in with fingerprint</button>${w||g?'<div class="or">or</div>':''}`:''}${w?`<form class="fs" onsubmit="aGo('pw',this);return false"><input name="p" type="password" autocomplete="current-password" placeholder="Password" required><button class="b">Sign in</button></form>`:''}${g?`${w?'<div class="or">or</div>':''}<button class="gb" onclick="aGo('g')">${GI} Continue with Google</button>`:''}<div class="sm bad" id="lerr"></div><button class="x lk" onclick="CLOUD.out()">Use a different account</button></div></div>`}
+l.innerHTML=`<div class="lw">${hd}<p class="sub">${up?'Create your account':'Sign in to your account'}</p><div class="lcard"><div class="lt"><button class="${up?'':'on'}" onclick="LG()">Sign in</button><button class="${up?'on':''}" onclick="LG(1)">Create account</button></div><button class="gb" onclick="aGo('g')">${GI} Continue with Google</button><div class="or">or with email</div><form class="fs" onsubmit="aGo('${up?'up':'in'}',this);return false"><label class="fld">Email<input name="e" type="email" autocomplete="email" inputmode="email" required></label><label class="fld">Password<input name="p" type="password" autocomplete="${up?'new':'current'}-password" required></label>${up?'<label class="fld">Confirm password<input name="c" type="password" autocomplete="new-password" required></label>':''}<button class="b">${up?'Create account':'Sign in'}</button></form>${up?'':'<button class="x lk" onclick="aRst()">Forgot password?</button>'}<div class="sm bad" id="lerr"></div></div><p class="sm" style="text-align:center;margin-top:14px">Your data stays private to your account.</p></div>`}
+const lerr=t=>{const e=$('#lerr');if(e){e.className='sm bad';e.textContent=t||''}},AM=e=>AE[e&&e.code]||'Could not sign in. Please try again.';
+async function aGo(k,f){lerr();if(!window.FB)return lerr('Sign-in is still loading. Check your internet connection.');try{if(k=='g')await FB.google();else if(k=='pw')await FB.signIn(cu().email,F(f).p);else{const d=F(f);if(k=='up'){if(d.p.length<6)return lerr(AE['auth/weak-password']);if(d.p!=d.c)return lerr('Passwords do not match.');await FB.signUp(d.e.trim(),d.p)}else await FB.signIn(d.e.trim(),d.p)}hap([12,40,22]);CLOUD.open()}catch(e){lerr(AM(e));const c=$('.lcard');if(c){c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}}}
+async function aRst(){const e=($('#lg input[name=e]')||{}).value;if(!e)return lerr('Enter your email above first.');try{await FB.reset(e.trim());const m=$('#lerr');m.className='sm ok';m.textContent='Reset link sent. Check your email.'}catch(x){lerr(AM(x))}}
+async function fpOk(u){try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:b64d(FPB(u))}],userVerification:'required',timeout:60000}});return 1}catch(e){lerr('Fingerprint check failed or was cancelled.');return 0}}
+async function fpIn(){const u=cu();if(u&&await fpOk(u.uid)){hap([12,40,22]);CLOUD.open()}}
+async function offl(){const a=LAST();if(a&&(!FPB(a.uid)||await fpOk(a.uid)))openAcc()}
+
+function rn(v){const P=PF(),p=P.find(x=>x.id==cur.id);p.name=v.trim()||p.name;savePF(P);cur=p;R()}
+const st=(k,v)=>{S.set[k]=v;applyTheme();R()};
+async function sp(f){const d=F(f);if(cur.h&&await hs(d.old,cur.salt)!=cur.h)return toast('Current password is wrong');secure(async()=>{const P=PF(),p=P.find(x=>x.id==cur.id);p.salt=uid();p.h=d.nw?await hs(d.nw,p.salt):'';savePF(P);cur=p;toast(d.nw?'Password saved':'Password removed');R()})}
+V.set=()=>{const TH=[['system','System'],['light','Light'],['dark','Dark'],['black','Black']],AC=['#2d5bff','#0f9d8a','#7c4dff','#e5484d','#d98a00','#12a150','#e255a1','#334155'],o=S.set;
+return `<div class="grid"><div class="card"><h2>Profile</h2><div class="row" style="border:0"><span class="em sm1">${cur.emoji}</span><input class="ti" value="${esc(cur.name)}" onchange="rn(this.value)"></div><div class="sm" style="margin:10px 0 6px">Avatar</div><div class="chips">${EMO.map(e=>`<button class="chip ${cur.emoji==e?'on':''}" onclick="re('${e}')">${e}</button>`).join('')}</div><button class="b" onclick="lock()" style="margin-top:10px;width:100%">Lock app</button><button class="b ghost" onclick="delP()" style="margin-top:8px;width:100%;color:var(--bad)">Delete this profile</button></div>
+<div class="card"><h2>Appearance</h2><div class="seg2">${TH.map(t=>`<button class="${o.theme==t[0]?'on':''}" onclick="st('theme','${t[0]}')">${t[1]}</button>`).join('')}</div><div class="sm" style="margin:12px 0 6px">Colour theme</div><div class="pal">${Object.entries(PAL).map(([k,c])=>`<button class="${(PAL[o.pal]?o.pal:'pine')==k?'on':''}" style="background:linear-gradient(135deg,${c[0]},${c[1]} 55%,${c[2]})" onclick="st('pal','${k}')">${k}</button>`).join('')}</div></div>
+<div class="card"><h2>Opening animation</h2><div class="seg2">${Object.entries(SPK).map(([k,v])=>`<button class="${spKind()==k?'on':''}" onclick="spSet('${k}')">${v}</button>`).join('')}</div><div class="sm" style="margin-top:8px">Tap an option to preview it.</div></div>
+<div class="card"><h2>Security</h2>
+<div class="row"><div class="g">Fingerprint check<div class="sm">Sign in with your fingerprint and confirm sensitive actions like deleting or resetting.</div></div><button class="b" onclick="${o.fp?'offFp()':'enrollFp()'}">${o.fp?'Turn off':'Turn on'}</button></div><div class="sm" style="margin-top:8px">The password and fingerprint lock this app on this device. They don't encrypt the saved data.</div></div></div>`};
+function boot(){LG()}
+
+const PAL={pine:['#238068','#2d9a7d','#5fb39b'],ocean:['#2a64b8','#3b7fd8','#7aa9e8'],plum:['#8a4f9e','#a265b7','#c49ad3'],brick:['#c0482f','#d4603f','#e69277'],saffron:['#b9770e','#d18f1c','#e8b34f'],graphite:['#4d5b66','#667683','#93a1ac']};
+const hap=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+const T0=toast;toast=m=>{hap(/wrong|failed|not available|include|invalid|blocked|not supported/i.test(m)?[40,50,40,50,60]:[10,30,16]);T0(m)};
+document.addEventListener('pointerdown',e=>{const t=e.target.closest('button,.chip,summary,label.pe,input[type=checkbox],select');if(!t)return;if(t.matches('button')&&!t.matches('.x,.av')){const r=t.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,i=document.createElement('span');i.className='rip';i.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;t.appendChild(i);setTimeout(()=>i.remove(),650)}},{passive:true});
+document.addEventListener('click',e=>{const t=e.target.closest('button,.chip,summary,label.pe,input[type=checkbox],select');if(t&&!t.classList.contains('dg'))hap(t.closest('nav')?8:10)},{capture:true,passive:true});
+let ltab='';const R0=R;R=function(){R0();document.body.dataset.tab=tab;if(tab!=ltab){ltab=tab;scrollTo(0,0);const v=$('#v');v.classList.remove('swap');void v.offsetWidth;v.classList.add('swap');document.body.classList.add('tc');clearTimeout(R.t);R.t=setTimeout(()=>{document.body.classList.remove('tc');v.classList.remove('swap')},1200)}};
+const E0=enter;enter=p=>{ltab='';document.body.classList.add('entering');setTimeout(()=>document.body.classList.remove('entering'),1700);E0(p)};
+const SPK={cards:'Cards',word:'Wordmark',light:'Light',none:'Off'},SPT={cards:2400,word:2100,light:2200};
+const spKind=()=>{try{return localStorage.getItem('assistant.splash')||'cards'}catch(e){return'cards'}};
+const SPH={cards:`<div class="sx"><div class="ck">${[[55,72],[40,86],[62,44]].map((a,i)=>`<div class="cd" style="--i:${i};--p:${a[1]}%"><div class="l1" style="width:${a[0]}%"></div><div class="l2"></div><div class="bt"><div></div></div></div>`).join('')}</div><h1 class="ct">My Assistant</h1></div>`,
+word:`<div class="sx"><h1 class="wm"><span class="my"><b style="--i:0">M</b><b style="--i:1">y</b></span> <span class="as">${[...'Assistant'].map((c,i)=>`<b style="--i:${i+2}">${c}</b>`).join('')}</span></h1><div class="wl"></div><p class="wt">Your day, organised</p></div>`,
+light:`<div class="sx"><div class="sglow"></div><h1 class="sh">My Assistant</h1><p class="wt">Your day, organised</p></div>`};
+function splash(kind){let el=$('#sp');if(!el){el=document.createElement('div');el.id='sp';document.body.appendChild(el)}
+if(!SPH[kind]){el.remove();document.body.classList.remove('sp');return}
+el.className='';el.innerHTML=SPH[kind];document.body.classList.add('sp');
+const end=()=>{if(el.classList.contains('go'))return;el.classList.add('go');document.body.classList.remove('sp');setTimeout(()=>el.remove(),900)};el.onclick=end;setTimeout(end,SPT[kind])}
+function spSet(k){try{localStorage.setItem('assistant.splash',k)}catch(e){}R();splash(k)}
+splash(spKind());
+const EMO=['😊','🧑‍🎓','👩‍💻','🦊','🌿','🚀','📚','🎧'];
+function re(e){const P=PF(),p=P.find(x=>x.id==cur.id);p.emoji=e;savePF(P);cur=p;R()}
+function delP(){if(PF().length<2){toast('Create another profile before deleting this one');return}sheet(`<h3>Delete “${esc(cur.name)}”?</h3><p class="sm">This profile and everything saved in it will be erased from this browser.</p><div class="two"><button class="b ghost" onclick="closeSheet()">Keep it</button><button class="b dg" onclick="cdp()">Delete profile</button></div>`)}
+function cdp(){hap([30,50,30]);secure(()=>{const P=PF().filter(x=>x.id!=cur.id);try{localStorage.removeItem(cur.key)}catch(e){}savePF(P);closeSheet();cur=null;lgn()})}
+// ---- habits & goals (v10) ----
+const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],PC=['#238068','#2a64b8','#c0482f','#8a4f9e','#b9770e','#4d7c2f','#c2456b','#4d5b66'];
+const acl=a=>a?PC[[...a].reduce((s,c)=>s+c.charCodeAt(0),0)%8]:'var(--bd)',mn=x=>+x.slice(0,2)*60+ +x.slice(3,5);
+const aopt=s=>'<option value="">No area</option>'+S.areas.map(a=>`<option ${a==s?'selected':''}>${esc(a)}</option>`).join('');
+const due=(h,d)=>!h.off&&h.days.includes(d.getDay())&&ds(d)>=h.created;
+const streak=h=>{let n=0,d=new Date();for(let i=0;i<400;i++){const k=ds(d);if(k<h.created)break;if(due(h,d)){if(h.log[k])n++;else if(i>0)break}d.setDate(d.getDate()-1)}return n};
+const best=h=>{let b=0,c=0,d=new Date(h.created+'T00:00');while(ds(d)<=TD()){if(due(h,d)){if(h.log[ds(d)])b=Math.max(b,++c);else if(ds(d)<TD())c=0}d.setDate(d.getDate()+1)}return b};
+const rate=(h,n)=>{let a=0,b=0,d=new Date();for(let i=0;i<n;i++){if(due(h,d)){b++;if(h.log[ds(d)])a++}d.setDate(d.getDate()-1)}return b?Math.round(a/b*100):0};
+const dsc=h=>{const a=h.days;return a.length==7?'Every day':a.join()=='1,2,3,4,5'?'Weekdays':a.join()=='0,6'?'Weekends':a.map(i=>DN[i]).join(', ')};
+function tg(id,k){const h=S.habits.find(x=>x.id==id);k=k||TD();h.log[k]?delete h.log[k]:h.log[k]=1;if(k<h.created)h.created=k;R();if($('#sh').className&&$('#sh').dataset.h==id)hd(id)}
+const wkS=h=>{let r='',d=new Date();d.setDate(d.getDate()-6);for(let i=0;i<7;i++){const k=ds(d),u=due(h,d),on=h.log[k];r+=`<button class="dy ${on?'on':u&&k<TD()?'miss':''} ${k==TD()?'td':''}" ${u||on?'':'disabled'} aria-label="${DN[d.getDay()]} ${k}" onclick="tg('${h.id}','${k}')"><small>${DN[d.getDay()].slice(0,2)}</small>${d.getDate()}</button>`;d.setDate(d.getDate()+1)}return `<div class="wk">${r}</div>`};
+const heat=h=>{let r='',d=new Date();d.setDate(d.getDate()-d.getDay()-77);for(let i=0;i<84;i++){const k=ds(d);r+=`<i class="${k>TD()?'fu':h.log[k]?'on':due(h,d)?'off':''}" title="${k}"></i>`;d.setDate(d.getDate()+1)}return `<div class="hm">${r}</div>`};
+const hc=h=>`<div class="card"><div class="row nw" style="border:0;padding:0" onclick="hd('${h.id}')"><i class="ad" style="background:${acl(h.area)}"></i><div class="g"><b>${esc(h.title)}</b><div class="sm">${[h.area,dsc(h),h.time].filter(Boolean).map(esc).join(', ')}</div></div><div class="sk"><b>${streak(h)}</b><small>streak</small></div></div>${wkS(h)}</div>`;
+V.habits=()=>{const n=new Date(),t=TD(),A=S.habits.filter(h=>!h.off),td=A.filter(h=>due(h,n)),dn=td.filter(h=>h.log[t]).length;let a=0,b=0;A.forEach(h=>{const d=new Date();for(let i=0;i<7;i++){if(due(h,d)){b++;if(h.log[ds(d)])a++}d.setDate(d.getDate()-1)}});
+return `<div class="card"><div class="row" style="border:0;padding:0"><div class="g"><div class="sm">Today</div><div class="big">${dn} of ${td.length}</div></div><div class="g"><div class="sm">Last 7 days</div><div class="big">${b?Math.round(a/b*100):0}%</div></div><div class="g"><div class="sm">Longest streak</div><div class="big">${A.reduce((m,h)=>Math.max(m,streak(h)),0)}</div></div></div><div class="bar ${td.length&&dn==td.length?'ok':''}" style="margin-top:10px"><i style="width:${pct(dn,td.length)}%"></i></div></div>
+<div class="bh"><h2>Your habits</h2><button class="b" onclick="nh()">Add habit</button></div>${A.map(hc).join('')||'<div class="card sm">No habits yet. Add one and tick it off each day to build a streak.</div>'}
+${S.habits.some(h=>h.off)?'<h2 class="mt">Paused</h2>'+S.habits.filter(h=>h.off).map(h=>`<div class="card"><div class="row" style="border:0;padding:0" onclick="hd('${h.id}')"><div class="g">${esc(h.title)}</div><span class="sm">Open to resume</span></div></div>`).join(''):''}`};
+function nh(){sheet(`<h3>New habit</h3><form class="fs" onsubmit="return ah(this)"><label class="fld">Name<input name="t" required placeholder="e.g. Write one task 2 paragraph"></label><div class="fg"><label class="fld">Repeat<select name="f"><option value="daily">Every day</option><option value="weekdays">Weekdays</option><option value="weekends">Weekends</option></select></label><label class="fld">Reminder time<input name="tm" type="time"></label></div><label class="fld">Area<select name="a">${aopt('')}</select></label><button class="b">Add habit</button></form>`)}
+function ah(f){const d=F(f),W={daily:[0,1,2,3,4,5,6],weekdays:[1,2,3,4,5],weekends:[0,6]};S.habits.push({id:uid(),area:d.a,title:d.t.trim(),freq:d.f,days:W[d.f],time:d.tm,log:{},created:TD(),note:''});closeSheet();R();return false}
+function hu(id,f,v){const h=S.habits.find(x=>x.id==id);if(h){h[f]=v;R()}}
+function hday(id,i){const h=S.habits.find(x=>x.id==id),a=h.days;h.days=a.includes(i)?a.filter(x=>x!=i):[...a,i].sort();if(!h.days.length)h.days=[i];h.freq='custom';R();hd(id)}
+function hd(id){const h=S.habits.find(x=>x.id==id);if(!h)return;sheet(`<h3>${esc(h.title)}</h3><div class="stats"><div><b>${streak(h)}</b><small>Streak</small></div><div><b>${best(h)}</b><small>Best</small></div><div><b>${rate(h,30)}%</b><small>30 days</small></div><div><b>${Object.keys(h.log).length}</b><small>Check-ins</small></div></div>${heat(h)}<div class="sm">Last 12 weeks. Filled squares are days you did it.</div>
+<div class="fs" style="margin-top:14px"><label class="fld">Name<input value="${esc(h.title)}" onchange="hu('${id}','title',this.value)"></label><div class="fld">Repeat on<div class="chips">${DN.map((c,i)=>`<button class="chip ${h.days.includes(i)?'on':''}" onclick="hday('${id}',${i})">${c}</button>`).join('')}</div></div>
+<div class="fg"><label class="fld">Reminder<input type="time" value="${h.time||''}" onchange="hu('${id}','time',this.value)"></label><label class="fld">Area<select onchange="hu('${id}','area',this.value)">${aopt(h.area)}</select></label></div><label class="fld">Note<input value="${esc(h.note||'')}" placeholder="Why this habit matters" onchange="hu('${id}','note',this.value)"></label>
+<div class="fg"><button class="b ghost" onclick="hu('${id}','off',${!h.off});closeSheet()">${h.off?'Resume habit':'Pause habit'}</button><button class="b ghost" style="color:var(--bad)" onclick="ask('habits','${id}')">Delete</button></div></div>`);$('#sh').dataset.h=id}
+// goals
+const PRI={h:'High',m:'Medium',l:'Low'};
+function gcalc(g){const st=g.start||g.m+'-01',du=g.due||eom(g.m),t=TD(),N=Math.max(1,dif(st,du)+1),per=g.target/N,el=Math.min(N,Math.max(0,dif(st,t)+1)),ex=per*el,left=Math.max(1,dif(t,du)+1),fin=g.done>=g.target;return{st,du,N,per,ex,left,fin,p:pct(g.done,g.target),need:Math.max(0,(g.target-g.done)/left),over:!fin&&t>du,late:!fin&&t<=du&&g.done<ex-.01}}
+function gl(g,cp){const c=gcalc(g),u=esc(g.unit||''),s=c.fin?['ok','Complete']:c.over?['bad','Past due']:c.late?['bad','Behind by '+r1(c.ex-g.done)+' '+u]:['ok','On track'];
+return `<div class="${cp?'gi':'card gc'}"><div class="row nw" style="border:0" onclick="gd('${g.id}')"><i class="ad" style="background:${acl(g.area)}"></i><div class="g"><b>${esc(g.title)}</b><div class="sm">${[g.area,PRI[g.pr]&&PRI[g.pr]+' priority'].filter(Boolean).map(esc).join(', ')}</div></div><div class="pc">${c.p}%</div></div>
+<div class="bar seg ${c.fin?'ok':s[0]=='bad'?'bad':''}" style="margin-top:8px"><i style="width:${c.p}%"></i>${c.fin?'':`<u style="left:${pct(c.ex,g.target)}%"></u>`}</div>
+<div class="row" style="border:0;padding:8px 0 0"><div class="g sm"><b class="${s[0]}">${s[1]}</b><br>${r1(g.done)} of ${r1(g.target)} ${u}${c.fin?'':', '+c.left+(c.left>1?' days':' day')+' left'}</div>${c.fin?'':`<form class="ql" onsubmit="return lg(this,'${g.id}')"><input name="v" type="number" step="any" inputmode="decimal" placeholder="+${Math.max(1,Math.round(c.need))}" required aria-label="Amount done"><button class="b">Log</button></form>`}</div></div>`}
+function lg(f,id,k){const g=S.goals.find(x=>x.id==id),v=+F(f).v;if(!v)return false;g.done=Math.max(0,r1(g.done+v));g.h.push({d:TD(),v});hap([10,30,16]);R();if(k)gd(id);return false}
+function gx(id,i){const g=S.goals.find(x=>x.id==id);g.done=Math.max(0,r1(g.done-g.h[i].v));g.h.splice(i,1);R();gd(id)}
+function gu(id,f,v){const g=S.goals.find(x=>x.id==id);if(!g)return;g[f]=['target','done'].includes(f)&&+v>0?+v:v;if(f=='start'||f=='due')g.m=(g.start||g.due).slice(0,7);R()}
+let gf='active';
+V.plan=()=>{const A=S.goals.filter(g=>fa=='All'||g.area==fa),ac=A.filter(g=>g.done<g.target),dn=A.filter(g=>g.done>=g.target),L=(gf=='done'?dn:gf=='all'?A:ac).slice().sort((a,b)=>(a.due||'')<(b.due||'')?-1:1),bh=ac.filter(g=>{const c=gcalc(g);return c.late||c.over}).length;
+return `<div class="kpis"><div class="kpi"><div class="sm">Active</div><div class="big">${ac.length}</div></div><div class="kpi"><div class="sm">Behind pace</div><div class="big ${bh?'bad':''}">${bh}</div></div><div class="kpi"><div class="sm">Completed</div><div class="big">${dn.length}</div></div></div>
+<div class="bh"><div class="seg2">${[['active','Active'],['done','Done'],['all','All']].map(a=>`<button class="${gf==a[0]?'on':''}" onclick="gf='${a[0]}';R()">${a[1]}</button>`).join('')}</div><button class="b" onclick="ng()">Add goal</button></div>
+${S.areas.length?`<select class="fl" onchange="fa=this.value;R()"><option>All</option>${S.areas.map(a=>`<option ${a==fa?'selected':''}>${esc(a)}</option>`).join('')}</select>`:''}${L.map(g=>gl(g)).join('')||'<div class="card sm">'+(gf=='done'?'No completed goals yet.':'No goals here. Add one with a target number and a finish date.')+'</div>'}`};
+function ng(){sheet(`<h3>New goal</h3><form class="fs" onsubmit="return ag(this)"><label class="fld">What do you want to achieve?<input name="t" required placeholder="e.g. Finish Cambridge 18 reading tests"></label><div class="fg"><label class="fld">Target number<input name="n" type="number" step="any" min="0.1" inputmode="decimal" required placeholder="300"></label><label class="fld">Unit<input name="u" placeholder="pages"></label></div><div class="fg"><label class="fld">Start<input name="s" type="date" value="${TD()}" required></label><label class="fld">Finish by<input name="e" type="date" value="${eom(TD().slice(0,7))}" required></label></div><div class="fg"><label class="fld">Area<select name="a">${aopt('')}</select></label><label class="fld">Priority<select name="p"><option value="m">Medium</option><option value="h">High</option><option value="l">Low</option></select></label></div><button class="b">Add goal</button></form>`)}
+function ag(f){const d=F(f);if(d.e<d.s){toast('Finish date must be after the start date');return false}S.goals.push({id:uid(),area:d.a,title:d.t.trim(),target:+d.n,unit:d.u.trim(),done:0,h:[],pr:d.p,m:d.s.slice(0,7),start:d.s,due:d.e});closeSheet();R();return false}
+const burn=(g,c)=>{const W=300,H=90,X=d=>8+Math.max(0,Math.min(1,dif(c.st,d)/Math.max(1,c.N-1)))*(W-16),Y=v=>H-8-Math.min(1,v/g.target)*(H-16);let a=Math.max(0,g.done-g.h.reduce((s,e)=>s+e.v,0));const p=[[c.st,a]];[...g.h].sort((x,y)=>x.d<y.d?-1:1).forEach(e=>{a+=e.v;p.push([e.d,a])});p.push([TD()<c.du?TD():c.du,g.done]);
+return `<svg viewBox="0 0 ${W} ${H}" width="100%" class="burn" role="img" aria-label="Progress against plan"><line class="ideal" x1="${X(c.st)}" y1="${Y(0)}" x2="${X(c.du)}" y2="${Y(g.target)}"/><polyline class="act" fill="none" points="${p.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"/></svg>`};
+function gd(id){const g=S.goals.find(x=>x.id==id);if(!g)return;const c=gcalc(g),u=esc(g.unit||''),pc=g.done/Math.max(1,dif(c.st,TD())+1),pf=pc>0&&!c.fin?ds(new Date(new Date(c.st+'T00:00').getTime()+Math.ceil(g.target/pc-1)*864e5)):'',old=r1(g.done-g.h.reduce((s,e)=>s+e.v,0));
+sheet(`<h3>${esc(g.title)}</h3><div class="stats"><div><b>${c.p}%</b><small>Done</small></div><div><b>${c.fin?0:r1(c.need)}</b><small>${u||'units'} a day</small></div><div><b>${c.fin?0:Math.max(0,dif(TD(),c.du))}</b><small>Days left</small></div><div><b>${c.fin?'Done':pf?pf.slice(5):'n/a'}</b><small>At your pace</small></div></div>${burn(g,c)}<div class="sm">Dashed line is the plan, solid line is your progress.</div>
+<form class="ql" style="margin:12px 0" onsubmit="return lg(this,'${id}',1)"><input name="v" type="number" step="any" inputmode="decimal" placeholder="Amount" required style="flex:1;width:auto"><button class="b">Log progress</button></form>
+<h2 class="mt">History</h2>${[...g.h].map((e,i)=>[e,i]).reverse().slice(0,30).map(a=>`<div class="row nw"><div class="g">${a[0].d}</div><b>+${r1(a[0].v)} ${u}</b><button class="b ghost sm2" onclick="gx('${id}',${a[1]})">Remove</button></div>`).join('')}${old>0?`<div class="row"><div class="g">Before tracking</div><b>${old} ${u}</b></div>`:''}${g.h.length||old>0?'':'<div class="sm">Nothing logged yet.</div>'}
+<h2 class="mt">Details</h2><div class="fs"><label class="fld">Goal<input value="${esc(g.title)}" onchange="gu('${id}','title',this.value)"></label><div class="fg"><label class="fld">Target<input type="number" step="any" value="${g.target}" onchange="gu('${id}','target',this.value)"></label><label class="fld">Unit<input value="${u}" onchange="gu('${id}','unit',this.value)"></label></div><div class="fg"><label class="fld">Start<input type="date" value="${c.st}" onchange="gu('${id}','start',this.value)"></label><label class="fld">Finish by<input type="date" value="${c.du}" onchange="gu('${id}','due',this.value)"></label></div>
+<div class="fg"><label class="fld">Area<select onchange="gu('${id}','area',this.value)">${aopt(g.area)}</select></label><label class="fld">Priority<select onchange="gu('${id}','pr',this.value)">${Object.keys(PRI).map(k=>`<option value="${k}" ${g.pr==k?'selected':''}>${PRI[k]}</option>`).join('')}</select></label></div><label class="fld">Note<input value="${esc(g.note||'')}" placeholder="Why this goal matters" onchange="gu('${id}','note',this.value)"></label><button class="b ghost" style="color:var(--bad)" onclick="ask('goals','${id}')">Delete goal</button></div>`)}
+boot();
+</script>
+<script>
+// ---- cloud sync (Firebase). Local storage stays the source of truth; the cloud is a synced copy. ----
+window.CLOUD=(()=>{
+const SK='assistant.sync.';
+const AE={'auth/operation-not-allowed':'This sign-in method is not switched on yet. Enable it in Firebase, Authentication, Sign-in method.','auth/unauthorized-domain':'This website address is not authorised. Add it in Firebase, Authentication, Settings, Authorized domains.','auth/popup-blocked':'The sign-in window was blocked. Allow pop-ups for this site and try again.','auth/popup-closed-by-user':'Sign-in was cancelled.','auth/cancelled-popup-request':'Sign-in was cancelled.','auth/invalid-credential':'Wrong email or password.','auth/wrong-password':'Wrong email or password.','auth/user-not-found':'No account with that email. Use Create account.','auth/invalid-email':'Enter a valid email address.','auth/email-already-in-use':'That email already has an account. Use Sign in.','auth/weak-password':'Use a password with at least 6 characters.','auth/network-request-failed':'No connection. Check your internet and try again.','auth/too-many-requests':'Too many attempts. Wait a few minutes and try again.','auth/operation-not-supported-in-this-environment':'Sign-in needs the app opened from an https:// address.',
+'permission-denied':'The cloud database refused access. Create the Firestore database and publish the security rules.','unavailable':'Offline. Your changes are safe here and will sync when the connection returns.','timeout':'The connection is slow. Will try again shortly.','not-found':'The cloud database is not created yet. Create it in Firebase, Firestore Database.','toolarge':'This profile is too large to sync.'};
+let user=null,known=false,stat='',chain=Promise.resolve(),timer=0,asked={},last=0,inited=false;
+const msg=e=>AE[e&&e.code]||('Sync problem: '+((e&&(e.code||e.message))||'unknown'));
+const canon=o=>o===undefined?'null':Array.isArray(o)?'['+o.map(canon).join()+']':o&&typeof o=='object'?'{'+Object.keys(o).sort().filter(k=>o[k]!==undefined).map(k=>JSON.stringify(k)+':'+canon(o[k])).join()+'}':JSON.stringify(o);
+const hh=s=>{let a=0xdeadbeef,b=0x41c6ce57;for(let i=0,c;i<s.length;i++){c=s.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677)}a=Math.imul(a^(a>>>16),2246822507)^Math.imul(b^(b>>>13),3266489909);b=Math.imul(b^(b>>>16),2246822507)^Math.imul(a^(a>>>13),3266489909);return(4294967296*(2097151&b)+(a>>>0)).toString(36)};
+// device-only fields never leave this device: the fingerprint credential and a running focus timer
+const strip=d=>{const c=JSON.parse(JSON.stringify(d||{}));delete c.fc;if(c.set)delete c.set.fp;return c};
+const hsh=(p,d)=>hh(canon({n:p.name,e:p.emoji,s:p.salt||'',w:p.h||'',d:strip(d)}));
+const loc=p=>{try{return JSON.parse(localStorage.getItem(p.key))}catch(e){return null}};
+const meta=()=>{try{return JSON.parse(localStorage.getItem(SK+(user?user.uid:'x')))||{}}catch(e){return{}}};
+const sm=(id,v)=>{const m=meta();m[id]=v;try{localStorage.setItem(SK+user.uid,JSON.stringify(m))}catch(e){}};
+const dm=id=>{const m=meta();delete m[id];try{localStorage.setItem(SK+user.uid,JSON.stringify(m))}catch(e){}};
+const empty=d=>!d||(!['areas','goals','habits','learn','tx','notes','items','plans'].some(k=>d[k]&&d[k].length)&&!Object.keys(d.budgets||{}).length&&!Object.keys(d.income||{}).length&&!(d.ielts&&((d.ielts.mocks||[]).length||(d.ielts.study||[]).length||d.ielts.date||d.ielts.target||d.ielts.name)));
+const ui=()=>{const e=$('#cs');if(e)e.textContent=stat};
+const fail=e=>{stat=msg(e);ui()};
+const run=fn=>chain=chain.then(fn).catch(fail);
+const time=()=>new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const done=()=>{last=Date.now();stat='Synced at '+time();ui()};
+
+async function push(p,L){L=L||loc(p);if(!L)return;const data=JSON.stringify(strip(L));if(new TextEncoder().encode(data).length>9e5)throw{code:'toolarge'};const h=hsh(p,L);
+await FB.set(p.id,{name:p.name,emoji:p.emoji,salt:p.salt||'',pw:p.h||'',data,hash:h,at:Date.now()});sm(p.id,{ph:h,ch:h,at:Date.now()})}
+function pull(p,cd){let nd;try{nd=JSON.parse(cd.data)}catch(e){throw{code:'bad'}}
+const L=loc(p);nd.set=nd.set||{};delete nd.set.fp;if(L&&L.set&&L.set.fp)nd.set.fp=L.set.fp;if(L&&L.fc)nd.fc=L.fc;
+const P=PF(),q=P.find(x=>x.id==p.id);if(q){q.name=String(cd.name||q.name);q.emoji=cd.emoji||q.emoji;q.salt=cd.salt??q.salt;q.h=cd.pw??q.h;savePF(P)}
+try{localStorage.setItem(p.key,JSON.stringify(nd))}catch(e){throw{code:'storage'}}
+const np=PF().find(x=>x.id==p.id);
+if(cur&&cur.id==p.id){cur=np;S=nd;norm();applyTheme();save();R();sm(p.id,{ph:hsh(np,S),ch:cd.hash,at:Date.now()})}else sm(p.id,{ph:hsh(np,nd),ch:cd.hash,at:Date.now()})}
+function ask(p,kind){const k=p.id+kind;if(asked[k]||$('#sh').className==='open')return;asked[k]=1;const n=esc(p.name);
+if(kind=='both')sheet(`<h3>Two versions of “${n}”</h3><p class="sm">This profile changed here and on another device. Choose the version to keep. The other one is replaced.</p><div class="two"><button class="b ghost" onclick="CLOUD.pick('${p.id}','cloud')">Use cloud version</button><button class="b" onclick="CLOUD.pick('${p.id}','here')">Keep this device</button></div>`);
+else sheet(`<h3>“${n}” was deleted on another device</h3><p class="sm">Remove it from this device too, or keep it and upload it again.</p><div class="two"><button class="b ghost" onclick="CLOUD.pick('${p.id}','drop')">Remove here</button><button class="b" onclick="CLOUD.pick('${p.id}','keep')">Keep and upload</button></div>`);
+stat='Waiting for your choice';ui()}
+async function one(p,cd){const m=meta()[p.id]||{},L=loc(p);
+if(!L){if(cd)pull(p,cd);return}
+const lh=hsh(p,L);
+if(!cd){if(m.ch)ask(p,'gone');else await push(p,L);return}
+if(lh===cd.hash){sm(p.id,{ph:lh,ch:lh,at:Date.now()});return}
+if(!m.ph){if(empty(L))pull(p,cd);else ask(p,'both');return}
+const lc=lh!==m.ph,cc=cd.hash!==m.ch;
+if(!lc&&!cc)return;if(!lc)return pull(p,cd);if(!cc)return push(p,L);ask(p,'both')}
+async function syncOneId(id){if(!user)return;const p=PF().find(x=>x.id==id);if(!p)return;if(cur&&cur.id==id)save();stat='Syncing…';ui();await one(p,await FB.get(id));if(!/choice/.test(stat))done()}
+async function syncAll(){if(!user)return;stat='Syncing…';ui();if(cur)save();
+const docs=await FB.list(),by={};docs.forEach(d=>by[d.id]=d);let P=PF();const m=meta();
+if(P.length)for(const id in m)if(!P.some(p=>p.id==id)){if(by[id])await FB.del(id);delete by[id];dm(id)}
+let add=0;docs.forEach(d=>{if(by[d.id]&&/^[A-Za-z0-9]{1,24}$/.test(d.id)&&!P.some(p=>p.id==d.id)&&!m[d.id]){P.push({id:d.id,name:String(d.name||'Profile'),emoji:d.emoji||'😊',key:d.id=='p0'?'assistant.v2':'assistant.v2.'+d.id,salt:d.salt||'',h:d.pw||''});add++}});
+if(add)savePF(P);
+for(const p of PF())await one(p,by[p.id]||null);
+if(!/choice/.test(stat))done();
+if(add&&!cur&&!$('#lg input'))lgn()}
+async function flush(){if(!user||!cur)return;const p=PF().find(x=>x.id==cur.id),L=p&&loc(p);if(!L)return;const m=meta()[p.id]||{};if(hsh(p,L)===m.ph)return;await syncOneId(p.id)}
+function drop(id){const q=PF().find(x=>x.id==id);if(!q)return;const P=PF().filter(x=>x.id!=id);savePF(P);try{localStorage.removeItem(q.key)}catch(e){}dm(id);cur=null;P.length?lgn():boot()}
+function init(){if(inited||!window.FB)return;inited=true;FB.onAuth(u=>{ACC(u);known=true;user=u;asked={};stat=u?'Waiting to sync':'';if(u)run(syncAll);else if(cur){save();cur=null;LG()}if(tab=='set'&&cur)R();lgRe()})}
+addEventListener('fb-ready',()=>{init();lgRe();if(tab=='set'&&cur)R()});
+document.addEventListener('visibilitychange',()=>{if(!user)return;
+if(document.visibilityState=='hidden'){if(timer){clearTimeout(timer);timer=0;run(flush)}}
+else if(Date.now()-last>60000){last=Date.now();run(cur?()=>syncOneId(cur.id):syncAll)}});
+addEventListener('online',()=>{if(user)run(syncAll)});
+const E1=enter;enter=p=>{E1(p);if(user)run(()=>syncOneId(p.id))};
+const VS=V.set;V.set=()=>{const h=VS(),i=h.lastIndexOf('</div>');return h.slice(0,i)+CLOUD.card()+h.slice(i)};
+const err=t=>{const e=$('#cerr');if(e)e.textContent=t||''};
+const api={
+q(){if(!user)return;clearTimeout(timer);timer=setTimeout(()=>{timer=0;run(flush)},1500)},
+now(){asked={};run(syncAll)},
+pick(id,how){closeSheet();run(async()=>{const p=PF().find(x=>x.id==id);if(!p)return;
+if(how=='here'||how=='keep'){await push(p);done()}
+else if(how=='cloud'){const cd=await FB.get(id);if(cd)pull(p,cd);done()}
+else secure(()=>{drop(id)})})},
+async google(){err();if(!window.FB)return;try{await FB.google()}catch(e){err(msg(e))}},
+async mail(f,create){err();const e=f.elements.e.value.trim(),p=f.elements.p.value;if(!e||!p)return err('Enter your email and password.');try{await(create?FB.signUp(e,p):FB.signIn(e,p))}catch(x){err(msg(x))}},
+u:()=>user,k:()=>known,open(){setTimeout(()=>run(openAcc),0)},
+async out(){try{try{await flush()}catch(e){}await FB.out()}catch(e){fail(e)}},
+card(){const h='<div class="card"><h2>Cloud sync</h2>';
+if(!/^https?:$/.test(location.protocol))return h+'<div class="sm">Open the app from its web address (https://) to turn on cloud sync.</div></div>';
+if(window.FBERR)return h+'<div class="sm">Cloud sync could not load. Check your internet connection and reload. Everything else works as usual.</div></div>';
+if(!window.FB||!known)return h+'<div class="sm">Loading…</div></div>';
+if(!user)return h+`<div class="sm">Sign in to back up your profiles and keep them the same on all your devices. The app still works offline.</div><button class="b" style="width:100%;margin-top:12px" onclick="CLOUD.google()">Continue with Google</button>
+<form class="fs" style="margin-top:14px" onsubmit="CLOUD.mail(this,0);return false"><label class="fld">Email<input name="e" type="email" autocomplete="email" inputmode="email"></label><label class="fld">Password<input name="p" type="password" autocomplete="current-password"></label><div class="fg"><button class="b">Sign in</button><button type="button" class="b ghost" onclick="CLOUD.mail(this.form,1)">Create account</button></div></form><div class="sm bad" id="cerr" style="margin-top:8px"></div></div>`;
+return h+`<div class="g" style="overflow-wrap:anywhere"><b>${esc(user.email||user.displayName||'Signed in')}</b><div class="sm" id="cs">${esc(stat)}</div></div><div class="fg" style="margin-top:12px"><button class="b" onclick="CLOUD.now()">Sync now</button><button class="b ghost" onclick="CLOUD.out()">Sign out</button></div><div class="sm" style="margin-top:10px">Fingerprint unlock and a running focus timer stay on this device.</div></div>`}
+};
+if(window.FB)init();
+return api})();
+</script>
+<script type="module">
+// Firebase (loaded from Google's CDN). If it cannot load, the app keeps working offline as before.
+(async()=>{
+  const B='https://www.gstatic.com/firebasejs/12.19.0/';
+  try{
+    const [A,Au,Fs]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
+    const app=A.initializeApp({
+      apiKey:"AIzaSyBA7KNGJKqHW6uoDahq6k2gtPtPZLtq7To",
+      authDomain:"my-assistant-life-a47c4.firebaseapp.com",
+      databaseURL:"https://my-assistant-life-a47c4-default-rtdb.firebaseio.com",
+      projectId:"my-assistant-life-a47c4",
+      storageBucket:"my-assistant-life-a47c4.firebasestorage.app",
+      messagingSenderId:"496775731280",
+      appId:"1:496775731280:web:4cfd6e7940abbb960e1955",
+      measurementId:"G-1T8R4HWXNL"
+    });
+    const auth=Au.getAuth(app),db=Fs.getFirestore(app);
+    const T=(p,ms=20000)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r({code:'timeout'}),ms))]);
+    const col=()=>Fs.collection(db,'users',auth.currentUser.uid,'profiles');
+    const ref=id=>Fs.doc(db,'users',auth.currentUser.uid,'profiles',id);
+    window.FB={
+      onAuth:cb=>Au.onAuthStateChanged(auth,cb),
+      google:()=>Au.signInWithPopup(auth,new Au.GoogleAuthProvider()),
+      signIn:(e,p)=>Au.signInWithEmailAndPassword(auth,e,p),
+      signUp:(e,p)=>Au.createUserWithEmailAndPassword(auth,e,p),
+      out:()=>Au.signOut(auth),reset:e=>Au.sendPasswordResetEmail(auth,e),
+      list:async()=>(await T(Fs.getDocs(col()))).docs.map(d=>({id:d.id,...d.data()})),
+      get:async id=>{const s=await T(Fs.getDoc(ref(id)));return s.exists()?s.data():null},
+      set:(id,o)=>T(Fs.setDoc(ref(id),o)),
+      del:id=>T(Fs.deleteDoc(ref(id)))
+    };
+  }catch(e){window.FBERR=e;console.warn('Firebase did not load',e)}
+  window.dispatchEvent(new Event('fb-ready'));
+})();
+</script>
+</body></html>
