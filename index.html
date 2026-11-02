@@ -554,6 +554,7 @@ body[data-tab=cal] .gc{min-height:0;height:calc((100dvh - 150px - env(safe-area-
 .bf-emp{display:flex;align-items:center;gap:12px;padding:14px;margin:12px 0 0;border-radius:15px;background:rgba(255,255,255,.14);border:1px dashed rgba(255,255,255,.45)}.bf-emp>span{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.2);flex:none}.bf-emp>div{flex:1;font-weight:600}.bf-emp small{display:block;font-weight:400;opacity:.85;font-size:12px}.bf-add{border:0;border-radius:12px;padding:8px 13px;background:#fff;color:var(--c1);font-weight:700;cursor:pointer}
 .bf-nt{display:flex;align-items:center;gap:6px;margin:6px 0;padding:1px 4px 1px 12px;border-radius:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18)}.bf-nt>i{flex:none;width:8px;height:8px;border-radius:50%;background:#fff;opacity:.85}.bf-nt .ti{flex:1;background:transparent;border:0;box-shadow:none}
 .bf-f{margin-top:10px}
+.bf-more>summary{cursor:pointer;font-size:12.5px;font-weight:700;padding:9px 4px;list-style:none;opacity:.95}.bf-more>summary::-webkit-details-marker{display:none}.bf-more>summary::after{content:" \25BE"}.bf-more[open]>summary::after{content:" \25B4"}
 @media(min-width:1024px){.bf-hd h2{font-size:24px}.bf-e{padding:12px 14px}}
 @media(prefers-reduced-motion:reduce){.bf-c,.bf-w,.bf-o,.bf-s,.bf-h2,.bf-r i{animation:none!important}}
 .rm .bf-c,.rm .bf-w,.rm .bf-o,.rm .bf-s,.rm .bf-h2,.rm .bf-r i{animation:none!important}
@@ -857,9 +858,13 @@ if(r)LOC={lat:+r[1],lon:+r[2],exact:0,ts:0};else LOC={lat:23,lon:cl(-new Date().
 locInit();
 function note(m){try{if(typeof toast==='function')toast(m)}catch(e){}}
 function locate(silent){
-if(!navigator.geolocation){if(!silent)note('Location is not available on this device. Using your time zone.');return}
-try{navigator.geolocation.getCurrentPosition(p=>{const la=p.coords.latitude,lo=p.coords.longitude;if(!isFinite(la)||!isFinite(lo))return;LOC={lat:la,lon:lo,exact:1,ts:Date.now()};try{localStorage.setItem(LK,JSON.stringify({lat:la,lon:lo,ts:LOC.ts}))}catch(e){}tick();if(!silent)note('Sun and moon now follow your exact location')},
-e=>{if(!silent)note(e&&e.code===1?'Location permission was denied. Using your time zone.':'Could not get your location. Using your time zone.')},{enableHighAccuracy:false,timeout:10000,maximumAge:36e5})}catch(e){if(!silent)note('Could not get your location. Using your time zone.')}}
+const why=' Your calendar and events are not affected.';
+if(!navigator.geolocation||window.isSecureContext===false){if(!silent)note('Location is not available here, so sun and moon use your time zone.'+why);return}
+const ok=p=>{const la=p.coords.latitude,lo=p.coords.longitude;if(!isFinite(la)||!isFinite(lo))return;LOC={lat:la,lon:lo,exact:1,ts:Date.now()};try{localStorage.setItem(LK,JSON.stringify({lat:la,lon:lo,ts:LOC.ts}))}catch(e){}tick();if(!silent)note('Sun and moon now follow your exact location')},
+fail=(e,again)=>{if(e&&e.code===1){if(!silent)note('Location is blocked for this site, so sun and moon use your time zone.'+why);return}
+if(again){try{navigator.geolocation.getCurrentPosition(ok,x=>fail(x,0),{enableHighAccuracy:true,timeout:20000,maximumAge:0})}catch(x){}return}
+if(!silent)note('Could not get your location, so sun and moon use your time zone.'+why)};
+try{navigator.geolocation.getCurrentPosition(ok,e=>fail(e,1),{enableHighAccuracy:false,timeout:10000,maximumAge:36e5})}catch(e){if(!silent)note('Could not get your location, so sun and moon use your time zone.'+why)}}
 /* ---- colour model ---- */
 const P=(a,z,m,h,t,p)=>({a,z:hx(z),m:hx(m),h:hx(h),t:hx(t),p});
 const DUSK=[P(-18,'#03060f','#060c1f','#0a1330','#060b1c',24),P(-12,'#081029','#11214f','#1d2f66','#0a1026',34),P(-6,'#16296b','#4a4a93','#d8715f','#1c1a45',56),P(-2,'#27408f','#8a5aa0','#ff8a4a','#2d1d47',70),P(.5,'#2f4fa5','#c0679c','#ffa040','#3b2142',76),P(5,'#3563b8','#d99a9a','#ffb860','#3a2540',82),P(11,'#3b79cc','#8fb2e0','#ffdca8','#12304f',87),P(22,'#3484dc','#6fa9e6','#cfe4f4','#0b2a46',90),P(45,'#2b78d8','#5aa5ec','#a8d4f6','#0b2a46',90)];
@@ -953,9 +958,34 @@ const fr=ts=>{if(!SR)return;const k=cl((ts-a)/16000,0,1),st=state(s+k*(e-s),true
 SR.raf=requestAnimationFrame(fr)}
 setInterval(tick,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});addEventListener('focus',tick);addEventListener('pageshow',tick);
-try{if(navigator.permissions&&navigator.permissions.query&&navigator.geolocation)navigator.permissions.query({name:'geolocation'}).then(r=>{if(r.state==='granted'&&(!LOC.exact||Date.now()-LOC.ts>6048e5))locate(true)}).catch(()=>{})}catch(e){}
-return{state,style:vstyle,layers,chips,ctrls,locate,sim,tick,loc:()=>LOC,_t:{sunAlt,moonAlt,moonPhase,sunDay,moonData,crossings}}
+try{if(navigator.permissions&&navigator.permissions.query&&navigator.geolocation)navigator.permissions.query({name:'geolocation'}).then(r=>{const go=()=>{if(r.state==='granted'&&(!LOC.exact||Date.now()-LOC.ts>6048e5))locate(true)};go();r.onchange=go}).catch(()=>{})}catch(e){}
+const FB0={t:0,alt:30,rise:true,label:'Today',sunA:'',sunB:'',mname:'',mev:'',mpath:'M0 -18A18 18 0 0 1 0 18A18 18 0 0 0 0 -18Z',mflip:false,day:true,exact:false,v:{'--sk1':'rgb(43,120,216)','--sk2':'rgb(90,165,236)','--sk3':'rgb(168,212,246)','--bft':'rgb(11,42,70)','--bfp':'90%','--bfs':'rgba(255,255,255,0)','--sx':'50%','--sy':'70px','--sr':'255,234,182','--so':'0','--sho':'0','--ss':'1','--hgx':'50%','--hgo':'0','--mx':'50%','--my':'70px','--mo':'0','--mh':'0','--mc':'rgb(246,238,224)','--ms':'1','--st':'0','--clr':'255,255,255','--clo':'0.4','--lsx':'50%','--lsc':'rgba(255,255,255,0)','--lmx':'50%','--lmc':'rgba(176,200,255,0)'}};
+function safe(){try{return state()}catch(e){return FB0}}
+return{state,safe,style:vstyle,layers,chips,ctrls,locate,sim,tick,loc:()=>LOC,_t:{sunAlt,moonAlt,moonPhase,sunDay,moonData,crossings}}
 })();
+
+/* ---- briefing events: next 14 days, refreshed live, never tied to location ---- */
+function bfEv(){
+const n=new Date(),t=TD(),nm=n.getHours()*60+n.getMinutes(),tmw=ds(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)),hz=ds(new Date(n.getFullYear(),n.getMonth(),n.getDate()+14));
+let all=[];try{all=gcOcc(t,hz)}catch(e){all=[]}
+const endM=e=>e.et?gm(e.et):gm(e.time)+30,
+ended=e=>e.type=='event'&&e.time&&e.date==t&&!(e.ed>e.date)&&nm>=endM(e),
+E=all.filter(e=>!e.done&&!ended(e)).map(e=>Object.assign({},e,{_d:e.date<t?t:e.date})).sort((a,b)=>(a._d+(a.time||'99'))<(b._d+(b.time||'99'))?-1:1),
+dayL=d=>{if(d==t)return'Today';if(d==tmw)return'Tomorrow';const x=new Date(d+'T00:00');return dif(t,d)<7?x.toLocaleDateString(undefined,{weekday:'short'})+' '+x.getDate():x.toLocaleDateString(undefined,{day:'numeric',month:'short'})},
+rel=e=>{if(e.date<t)return'Ongoing';if(e.date!=t||!e.time)return'';const s=gm(e.time),en=endM(e);if(nm>=s&&nm<en)return'Now';if(nm>=en)return'Earlier';const d=s-nm;return d>0&&d<=180?'In '+(d<60?d+' min':Math.floor(d/60)+' h'+(d%60?' '+d%60+' min':'')):''},
+row=e=>{const r=rel(e),tm=e.time?gT(gm(e.time)):'All day',lab=e.date<t?'Ongoing':dayL(e.date);
+return `<div class="bf-e${r=='Now'?' now':''}" style="--k:${gK(e)}" role="button" tabindex="0" onclick="tab='cal';gcGo('${e.date}','d')" onkeydown="if(event.key=='Enter')this.click()"><div class="bf-t"><b>${tm}</b><small>${lab}</small></div><i class="bf-k"></i><div class="bf-n"><span>${esc(e.t)}</span><small>${TY[e.type]||'Event'}${e.time&&e.et?' · until '+gT(gm(e.et)):''}${e.loc?' · '+esc(e.loc):''}</small></div>${r&&r!='Ongoing'?`<span class="bf-r">${r=='Now'?'<i></i>':''}${r}</span>`:''}</div>`},
+cal='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>',
+vis=E.slice(0,6),more=E.slice(6,40);let h='';
+try{if(window.gNeed&&gLk())h+=`<div class="bf-emp"><span>${cal}</span><div>Google Calendar needs to reconnect<small>Tap to refresh your events</small></div><button type="button" class="bf-add" onclick="gSync()">Reconnect</button></div>`}catch(e){}
+if(E.length){h+='<div class="bf-l">Coming up</div>'+vis.map(row).join('');if(more.length)h+=`<details class="bf-more"><summary>Show ${more.length} more</summary>${more.map(row).join('')}</details>`}
+else h+=`<div class="bf-emp"><span>${cal}</span><div>Nothing scheduled in the next 2 weeks.<small>Add an event or reminder to see it here.</small></div><button type="button" class="bf-add" onclick="tab='cal';R();gcNew()">+ Event</button></div>`;
+const td=E.filter(e=>e._d==t).length;
+return{h,cnt:E.length?(td?td+' today · ':'')+E.length+' in the next 2 weeks':'Nothing coming up'}}
+function bfLive(){try{if(tab!=='today')return;const c=document.querySelector('.card.hero.bf');if(!c)return;const w=c.querySelector('.bf-evs');if(!w)return;const E=bfEv();
+if(w.__b!==E.h){const d=w.querySelector('details.bf-more'),op=d&&d.open;w.innerHTML=E.h;w.__b=E.h;if(op){const n=w.querySelector('details.bf-more');if(n)n.open=true}}
+const k=c.querySelector('[data-k="cnt"]');if(k&&k.textContent!==E.cnt)k.textContent=E.cnt}catch(e){}}
+setInterval(bfLive,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)bfLive()});addEventListener('focus',bfLive);addEventListener('pageshow',bfLive);
 function brief(){const n=new Date(),t=TD(),I=S.ielts,o=S.bo,hr=n.getHours(),nm=hr*60+n.getMinutes(),W=[];
 const ic=d=>`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
 const IC2={cal:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',flag:'M5 21V4M5 4h11l-2 4 2 4H5',bolt:'M13 2L4 14h7l-1 8 9-12h-7z',book:'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13',wal:'M3 7h18v12H3zM3 11h18M16 15h2'};
@@ -966,19 +996,14 @@ if(o.streak)S.habits.filter(h=>due(h,n)&&!h.log[t]&&streak(h)>=3).forEach(h=>W.p
 if(o.study){const m=wkMin();W.push({i:IC2.book,v:(m.t/60).toFixed(1),u:'h',l:'Studied this week',x:''})}
 const bt=Object.values(S.budgets).reduce((a,b)=>a+(+b||0),0),sp=S.tx.filter(x=>MK(x.date)==MK(t)&&x.type!='in').reduce((a,x)=>a+x.amt,0);
 if(o.budget&&bt)W.push({i:IC2.wal,v:pct(sp,bt),u:'%',l:'Budget used',x:money(sp)+' of '+money(bt),b:pct(sp,bt)});
-const e3=ds(new Date(n.getTime()+3*864e5)),E=gcOcc(t,e3).filter(e=>!e.done).sort(evSort).slice(0,5);
-const tmw=ds(new Date(n.getTime()+864e5));
-const dayL=d=>d==t?'Today':d==tmw?'Tomorrow':(x=>x.toLocaleDateString(undefined,{weekday:'short'})+' '+x.getDate())(new Date(d+'T00:00'));
-const rel=e=>{if(e.date!=t||!e.time)return'';const s=gm(e.time),en=e.et?gm(e.et):s+30;if(nm>=s&&nm<en)return'Now';const d=s-nm;return d>0&&d<=180?'In '+(d<60?d+' min':Math.floor(d/60)+' h'+(d%60?' '+d%60+' min':'')):''};
-const evH=E.map(e=>{const r=rel(e),tm=e.time?gT(gm(e.time)):'All day';
-return `<div class="bf-e${r=='Now'?' now':''}" style="--k:${gK(e)}" role="button" tabindex="0" onclick="tab='cal';gcGo('${e.date}','d')" onkeydown="if(event.key=='Enter')this.click()"><div class="bf-t"><b>${tm}</b><small>${dayL(e.date)}</small></div><i class="bf-k"></i><div class="bf-n"><span>${esc(e.t)}</span><small>${TY[e.type]}${e.time&&e.et?' · until '+gT(gm(e.et)):''}</small></div>${r?`<span class="bf-r">${r=='Now'?'<i></i>':''}${r}</span>`:''}</div>`}).join('');
+const EV=bfEv();
 const wH=W.map(w=>`<div class="bf-i${w.w?' bf-wn':''}"><span class="bf-ib">${ic(w.i)}</span><div class="bf-iv"><b>${w.v}</b>${w.u?`<em>${w.u}</em>`:''}</div><div class="bf-il">${w.l}</div>${w.x?`<small>${w.x}</small>`:''}${w.b!=null?`<div class="bf-bar"><i style="width:${w.b}%"></i></div>`:''}</div>`).join('');
 const ph=(d,off)=>`animation-duration:${d}s;animation-delay:-${(((Date.now()/1000)+(off||0))%d).toFixed(2)}s`;
 const wave=(y,op,d,off)=>`<g class="bf-w" style="${ph(d,off)}"><path d="M0 ${y} Q150 ${y-26} 300 ${y} T600 ${y} T900 ${y} T1200 ${y} V120 H0Z" fill="#fff" opacity="${op}"/></g>`;
-const SY=SKY.state(),scene=`<div class="bf-sc" aria-hidden="true">${SKY.layers(SY,ph)}<svg class="bf-bot" viewBox="0 0 600 70" preserveAspectRatio="xMidYMax slice">${wave(40,.11,26,0)}${wave(54,.13,19,9)}</svg></div>`;
-const dtx=n.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}),cnt=E.length?E.length+(E.length==1?' event':' events')+' in the next 3 days':'No events in the next 3 days';
-return `<div class="card hero bf" style="${SKY.style(SY)}">${scene}<div class="bf-in"><div class="bf-skyhd"><div class="bf-hd"><div><h2>My briefing</h2><div class="bf-sub">${dtx} · ${cnt}</div></div><div class="bf-hr"><span class="bf-tod" data-k="tod">${SY.label}</span>${SKY.ctrls(SY)}</div></div>${SKY.chips(SY)}</div>
-${E.length?`<div class="bf-l">Coming up</div>${evH}`:`<div class="bf-emp"><span>${ic(IC2.cal)}</span><div>Nothing scheduled soon.<small>Add an event or reminder to see it here.</small></div><button type="button" class="bf-add" onclick="tab='cal';R();gcNew()">+ Event</button></div>`}
+const SY=SKY.safe(),scene=`<div class="bf-sc" aria-hidden="true">${SKY.layers(SY,ph)}<svg class="bf-bot" viewBox="0 0 600 70" preserveAspectRatio="xMidYMax slice">${wave(40,.11,26,0)}${wave(54,.13,19,9)}</svg></div>`;
+const dtx=n.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+return `<div class="card hero bf" style="${SKY.style(SY)}">${scene}<div class="bf-in"><div class="bf-skyhd"><div class="bf-hd"><div><h2>My briefing</h2><div class="bf-sub">${dtx} · <span data-k="cnt">${EV.cnt}</span></div></div><div class="bf-hr"><span class="bf-tod" data-k="tod">${SY.label}</span>${SKY.ctrls(SY)}</div></div>${SKY.chips(SY)}</div>
+<div class="bf-evs">${EV.h}</div>
 ${W.length?`<div class="bf-l">At a glance</div><div class="bf-g">${wH}</div>`:''}
 <div class="bf-l">Notes</div>${S.notes.map(x=>`<div class="bf-nt"><i></i><input class="ti" value="${esc(x.t)}" aria-label="Note" onchange="up('notes','${x.id}','t',this.value)"><button class="x" style="color:#fff" aria-label="Note options" onclick="ask('notes','${x.id}')">⋯</button></div>`).join('')}
 <form onsubmit="return an(this)" class="bf-f"><input name="t" placeholder="Write your own reminder or note…" required><button class="b" style="background:#fff;color:var(--ac)">Add</button></form>
@@ -1287,11 +1312,11 @@ function gcPrefs(){const g=gcG(),s=(k,a)=>`<select onchange="gcS('${k}',this.val
 gcO(`<div class="gcd" style="width:min(460px,94vw)" role="dialog" aria-modal="true" aria-label="Calendar settings"><div class="gfh"><h3 style="margin:0 0 0 10px">Settings</h3><button class="gci" onclick="gcX()" aria-label="Close">${gi(IP.x)}</button></div><div class="gfb"><div class="gpr2"><span>Week starts on</span>${s('ws',[[0,'Sunday'],[1,'Monday'],[6,'Saturday']])}</div><div class="gpr2"><span>Show weekends</span><input type="checkbox" ${g.wk?'checked':''} onchange="gcS('wk',this.checked?1:0)"></div><div class="gpr2"><span>Time format</span>${s('h',[[0,'12-hour (1pm)'],[1,'24-hour (13:00)']])}</div><div class="gpr2"><span>Default event length</span>${s('du',[[15,'15 minutes'],[30,'30 minutes'],[45,'45 minutes'],[60,'1 hour'],[90,'1.5 hours'],[120,'2 hours']])}</div><div class="gpr2"><span>Default notification</span>${s('rm',[['','None'],[0,'At time of event'],[5,'5 minutes before'],[10,'10 minutes before'],[30,'30 minutes before'],[60,'1 hour before'],[1440,'1 day before']])}</div>${(()=>{const l=gLk();return `<div class="gpr2" style="padding:12px 22px"><span>Google Calendar &amp; Tasks<br><span class="sm">${l?'Connected'+(l.em?' as '+esc(l.em):'')+(gMsg?' · '+esc(gMsg):''):esc(gMsg)||'Not connected'}</span></span>${l?`<span><button class="gcb" onclick="gSync()">Sync now</button><button class="gcb" onclick="gOff()">Disconnect</button></span>`:`<button class="gcs2" onclick="gOn()">Connect</button>`}</div>`})()}</div></div>`)}
 // ---- Google Calendar + Tasks two-way sync ----
 const GCID='496775731280-98b3ru89mk1cnu8ml8kf9k89lktd9c6v.apps.googleusercontent.com',GSC='https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/tasks',CB='https://www.googleapis.com/calendar/v3/calendars/primary',TB='https://tasks.googleapis.com/tasks/v1/lists/@default/tasks',gTz=Intl.DateTimeFormat().resolvedOptions().timeZone,GD=['SU','MO','TU','WE','TH','FR','SA'];
-let gTok=null,gExp=0,gBusy=0,gMsg='',gLast=0,gTm=0,gLd=null;
+window.gNeed=0;let gTok=null,gExp=0,gBusy=0,gMsg='',gLast=0,gTm=0,gLd=null;
 const gLk=()=>{try{return cur&&JSON.parse(localStorage.getItem('gs.'+cur.id)||'null')}catch(e){return null}},
 gLoad=()=>gLd||(gLd=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.onload=ok;s.onerror=()=>{gLd=null;no('load')};document.head.appendChild(s)})),
 gEr=x=>({popup_failed_to_open:'Allow pop-ups for this site, then tap Sync',popup_closed:'Sign-in was closed',access_denied:'Access was denied',load:'Could not reach Google. Check your connection',auth:'Please reconnect to Google',scope:'On Google\'s screen, tick every permission box (Calendar and Tasks), then tap Connect again'}[x]||String(x&&x.message||x)),
-gUi=()=>{if(tab=='cal')R();if($('#gcov.open [aria-label="Calendar settings"]'))gcPrefs()};
+gUi=()=>{if(tab=='cal')R();else bfLive();if($('#gcov.open [aria-label="Calendar settings"]'))gcPrefs()};
 function gTk(f){return new Promise((ok,no)=>{if(!f&&gTok&&Date.now()<gExp-6e4)return ok(gTok);if(window.Native){natCall('calendar').then(t=>{if(!t||t[0]=='!')return no(t=='!scope'?'scope':t?{message:t.slice(1)}:'popup_closed');gTok=t;gExp=Date.now()+3300e3;ok(t)});return}const go=()=>{const l=gLk();google.accounts.oauth2.initTokenClient({client_id:GCID,scope:GSC,callback:r=>{if(r.error)return no(r.error);if(f&&!google.accounts.oauth2.hasGrantedAllScopes(r,...GSC.split(' ')))return no('scope');gTok=r.access_token;gExp=Date.now()+r.expires_in*1e3;ok(gTok)},error_callback:e=>no(e.type||'error')}).requestAccessToken({prompt:f?'consent':'',hint:l&&l.em||undefined})};window.google&&google.accounts&&google.accounts.oauth2?go():gLoad().then(go,()=>no('load'))})}
 async function gF(u,o={}){const t=await gTk(),r=await fetch(u,{...o,headers:{Authorization:'Bearer '+t,'Content-Type':'application/json'}});if(r.status==401){gTok=null;throw'auth'}if(r.status==204)return{};const j=await r.json().catch(()=>({}));if(!r.ok)throw(j.error&&j.error.message)||r.status;return j}
 async function gAll(u){let a=[],p='';do{const j=await gF(u+(p?'&pageToken='+p:''));a=a.concat(j.items||[]);p=j.nextPageToken}while(p);return a}
@@ -1318,11 +1343,11 @@ else if(m.k==k&&g.updated!==m.u&&gH(e)==m.h){Object.assign(e,f,k=='t'?{time:e.ti
 for(const e of S.events.slice()){const k=gK2(e);if(k=='t'&&!tk)continue;let m=M[e.id];if(m&&m.k!=k){await rd(m.k,m.g);delete M[e.id];m=0}if(m&&m.h==gH(e))continue;
 try{const r=await gF(m?(k=='t'?TB:CB+'/events')+'/'+m.g:(k=='t'?TB:CB+'/events'),{method:m?'PATCH':'POST',body:JSON.stringify(k=='t'?gTb(e):gBody(e,!!m))});M[e.id]={g:r.id||m.g,k,h:gH(e),u:r.updated}}catch(x){if(x==='auth')throw x;bad++;if(m&&/not found|deleted|gone/i.test(String(x)))delete M[e.id]}}
 S.events.sort(evSort);save();gMsg=(bad?bad+' item(s) not synced · ':'')+(te?'Tasks: '+te+' · ':'')+'Synced '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});if(!q&&!bad)toast('Google Calendar synced');
-}catch(x){gMsg=gEr(x);if(!q)toast(gMsg)}gBusy=0;gUi()}
+window.gNeed=0}catch(x){gMsg=gEr(x);window.gNeed=/auth|popup|scope|denied|consent|interaction|immediate|reconnect/i.test(String(x&&x.message||x))?1:0;if(!q)toast(gMsg)}gBusy=0;gUi()}
 async function gOn(){try{await gTk(1);const c=await gF(CB+'/events?maxResults=1');localStorage.setItem('gs.'+cur.id,JSON.stringify({em:/@/.test(c.summary||'')?c.summary:''}));hap('success');gSync()}catch(x){toast(gEr(x))}}
 function gOff(){try{google.accounts.oauth2.revoke(gTok)}catch(e){}gTok=null;localStorage.removeItem('gs.'+cur.id);gMsg='';toast('Google disconnected');gUi()}
 const gSched=()=>{if(gBusy||!gLk())return;clearTimeout(gTm);gTm=setTimeout(()=>gSync(1),4000)},gcSyncBtn=()=>gLk()?gSync():gcPrefs();
-gLoad().catch(()=>0);setInterval(()=>{if(!document.hidden&&cur&&!gBusy&&gLk()&&Date.now()-gLast>3e5){gLast=Date.now();gSync(1)}},15000);
+gLoad().catch(()=>0);setInterval(()=>{if(!document.hidden&&cur&&!gBusy&&gLk()&&Date.now()-gLast>3e5){gLast=Date.now();gSync(1)}},15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cur&&!gBusy&&gLk()&&Date.now()-gLast>12e4){gLast=Date.now();gSync(1)}});
 if(!window.__gck){window.__gck=1;document.addEventListener('keydown',e=>{const o=$('#gcov');if(o&&o.className=='open'){if(e.key=='Escape')gcX();return}if(!cur||tab!='cal'||e.metaKey||e.ctrlKey||e.altKey||/^(INPUT|SELECT|TEXTAREA)$/.test((e.target||{}).tagName))return;const k=e.key.toLowerCase(),m={d:'d',w:'w',m:'m',a:'s'}[k];if(m)gcView(m);else if(k=='t')gcGo(TD());else if(k=='c'){e.preventDefault();gcNew()}else if(k=='j'||k=='n'||k=='arrowright')gcNav(1);else if(k=='k'||k=='p'||k=='arrowleft')gcNav(-1)});try{new MutationObserver(()=>{const l=$('#lg');if(l&&l.classList.contains('on'))gcX()}).observe($('#lg'),{attributes:true,attributeFilter:['class']})}catch(x){}}
 if(!window.__gsw){window.__gsw=1;let sx=0,sy=0,st=0,ok=false,wt=0;
 const inCal=t=>tab=='cal'&&t&&t.closest&&t.closest('.gc')&&!t.closest('.gcs,input,select,textarea')&&!$('#gcov.open');
