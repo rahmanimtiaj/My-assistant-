@@ -1,0 +1,77 @@
+<!-- MY ASSISTANT UI FIXES
+     Paste this whole block into your file, just before the final </body> tag
+     (after the last </script>). Nothing else needs to change. -->
+<style id="ui-fixes">
+/* 1. Subtext contrast: darker muted colour, solid (not translucent) text on gradients */
+:root{--mu:#46534c}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--mu:#aab8b0}}
+:root[data-theme=dark]{--mu:#aab8b0}
+::placeholder{color:var(--mu);opacity:.85}
+.hero input::placeholder{color:rgba(255,255,255,.9)}
+.kpi,.mac button,.mr{background:var(--card)}
+.hh,.gs,.mh{background-image:linear-gradient(rgba(6,14,10,.34),rgba(6,14,10,.34)),linear-gradient(135deg,var(--c1),var(--c2) 58%,var(--c3))}
+.hh p,.hh .st small,.gs-t span,.mh small,.bf-sub,.bf-t small,.bf-n small,.bf-i small,.bf-il{opacity:1;color:rgba(255,255,255,.96)}
+.bf-l{opacity:.95}
+.bf-sub,.bf-hd h2{text-shadow:0 1px 3px rgba(0,0,0,.55),0 0 14px rgba(0,0,0,.35)}
+.bf-scr{height:170px;background:linear-gradient(180deg,rgba(5,14,36,.62),rgba(5,14,36,0))}
+.bf-tod,.bf-ch{background:rgba(8,20,34,.55)}
+
+/* 2. Dropdowns (goal area/sort, priority, etc.) were unreadable when the app theme differed from the phone theme */
+:root[data-theme=dark]{color-scheme:dark}
+:root[data-theme=light]{color-scheme:light}
+select option{background:var(--card);color:var(--tx)}
+
+/* 3. Completed tasks, habits and calendar items were squeezed to 132px wide (donut-chart class clash) */
+.dn:not(svg){width:auto;flex:initial}
+svg.dn{width:132px;flex:none}
+
+/* 4. Chips, checkboxes and week buttons jumped sideways on tap (a keyframe name was defined twice) */
+@keyframes popb{40%{transform:scale(1.07)}}
+.chip.pop,.dy.pop,.seg2 button.pop,.pal button.pop,.lt button.pop,.chk.pop{animation-name:popb}
+
+/* 5. Goal cards: visible "open" affordance, keyboard focus, long titles, bigger close button */
+.gk-h{cursor:pointer;align-items:center}
+.gk-t{flex:1}
+.gk-h::after{content:"";flex:none;width:8px;height:8px;margin-left:2px;border:solid var(--mu);border-width:0 2px 2px 0;transform:rotate(-45deg)}
+.gk.cp .gk-h::after{display:none}
+.gk-h:focus-visible{outline:3px solid var(--c1);outline-offset:3px;border-radius:10px}
+.pan h3{overflow-wrap:anywhere;padding-right:44px}
+.sx{width:40px;height:40px}
+body[data-tab=plan] main#v{padding-bottom:140px}
+
+/* 6. Small fixes */
+.hh .tr,.rg2 .tr{animation:none}
+@media(max-width:350px){.fa .mn{display:none}}
+</style>
+<script id="ui-fixes-js">
+(function(){
+  /* Palette: darken the light gradient ends so white text stays readable (saffron, brick, pine were worst) */
+  var P=window.PAL0;
+  if(P){
+    P.pine=['#0e7a5a','#168f69','#3f9e3a'];
+    P.ocean=['#1f4fd1','#1c7fd4','#1a9aa0'];
+    P.plum=['#6d2fc4','#a83a98','#cf4f78'];
+    P.brick=['#c4321f','#d9531a','#d06a1c'];
+    P.saffron=['#8a4b00','#a86206','#b87d0e'];
+    try{
+      var g=JSON.parse(localStorage.getItem('assistant.gtheme')),c=P[(g&&g.pal)||'pine']||P.pine,r=document.documentElement;
+      ['--c1','--c2','--c3'].forEach(function(k,i){r.style.setProperty(k,c[i])});
+      r.style.setProperty('--ac',c[0]);
+    }catch(e){}
+  }
+  /* Goal cards: make the header a real, keyboard-operable button */
+  var v=document.getElementById('v');
+  if(!v)return;
+  function mark(){
+    v.querySelectorAll('.gk-h').forEach(function(e){
+      if(!e.hasAttribute('role')){e.setAttribute('role','button');e.tabIndex=0;}
+    });
+  }
+  new MutationObserver(mark).observe(v,{childList:true,subtree:true});
+  mark();
+  document.addEventListener('keydown',function(e){
+    var t=e.target;
+    if((e.key==='Enter'||e.key===' ')&&t.classList&&t.classList.contains('gk-h')){e.preventDefault();t.click();}
+  });
+})();
+</script>
